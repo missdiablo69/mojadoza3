@@ -1,8 +1,6 @@
 backend:
-  name: github
-  repo: missdiablo69/mojadoza3
+  name: git-gateway
   branch: main
-  base_url: https://auth.decapcms.org
 
 media_folder: "images/uploads"
 public_folder: "/images/uploads"
