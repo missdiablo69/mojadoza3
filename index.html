@@ -346,7 +346,7 @@
         }
       } catch (e) {}
 
-      // Mesečni Horoskop (Učitava najnoviji CMS fajl dinamički preko GitHub API-ja)
+      // Mesečni Horoskop
       try {
         const resList = await fetch('https://api.github.com/repos/missdiablo69/mojadoza3/contents/content/horoskop');
         if (resList.ok) {
@@ -360,8 +360,10 @@
               const znaci = ['ovan', 'bik', 'blizanci', 'rak', 'lav', 'devica', 'vaga', 'skorpija', 'strelac', 'jarac', 'vodolija', 'ribe'];
               znaci.forEach(znak => {
                 const el = document.getElementById(`horoskop-${znak}`);
-                if (el && data[znak]) {
-                  el.innerHTML = marked.parse(data[znak]);
+                // Proverava i pojedinačne znake i opšte polje "body" ili "tekst" iz CMS-a
+                const tekstZnaka = data[znak] || data.body || data.tekst;
+                if (el && tekstZnaka) {
+                  el.innerHTML = marked.parse(tekstZnaka);
                 }
               });
             }
