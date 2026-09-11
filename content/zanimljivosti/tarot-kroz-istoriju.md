@@ -2,7 +2,7 @@
 title: Tarot kroz istoriju
 description: Tarot kroz istoriju
 ---
-Istorija tarot karata Severna Italija):
+
 
  Karte nastaju kao drustvena igra za bogatu aristokratiju pod nazivom "**Tarocchi"**. Najstariji sacuvani primerak je rucno oslikani Visconti-Sforza spil.16-17. vek (Francuska): Sa pronalaskom stamparije, karte postaju dostupne narodu. Razvija se "**Marsejski tarot"** koji postavlja vizuelni standard za izgled spila.
 
