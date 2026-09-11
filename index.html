@@ -398,30 +398,6 @@ async function ucitajSveSekcije() {
     }
   } catch (e) {
     console.error("Greška pri učitavanju izgleda:", e);
-  // 0. Učitavanje izgleda (pozadina i muzika)
-  try {
-    const resIzgled = await fetch('/content/izgled.json');
-    if (resIzgled.ok) {
-      const dataIzgled = await resIzgled.json();
-      
-      // Pozadinska slika
-      if (dataIzgled.pozadina) {
-        document.body.style.backgroundImage = `url('${dataIzgled.pozadina}')`;
-        document.body.style.backgroundSize = 'cover';
-        document.body.style.backgroundPosition = 'center';
-        document.body.style.backgroundAttachment = 'fixed';
-      }
-
-      // Pozadinska muzika
-      if (dataIzgled.muzika) {
-        const audio = document.getElementById('bg-audio');
-        const btn = document.getElementById('audio-btn');
-        audio.src = dataIzgled.muzika;
-        btn.style.display = 'inline-block';
-      }
-    }
-  } catch (e) {
-    console.error("Greška pri učitavanju izgleda:", e);
   }
 
   // 1. Horoskop
@@ -492,7 +468,7 @@ function toggleAudio() {
   }
 }
 
-// Pokretanje ucitavanja sadržaja
+// Pokretanje učitavanja pri punjenju stranice
 ucitajSveSekcije();
 </script>
 </body>
