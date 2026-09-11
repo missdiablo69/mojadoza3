@@ -67,19 +67,23 @@
       box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
     }
     .card-display {
-      width: 200px;
-      height: 340px;
-      margin: 20px auto;
-      border: 2px solid var(--accent-color);
-      border-radius: 10px;
-      background: #251d42;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      color: var(--accent-color);
-      background-size: cover;
-      background-position: center;
+  width: 200px;
+  height: 340px;
+  margin: 20px auto;
+  border: 2px solid var(--accent-color);
+  border-radius: 10px;
+  background-color: #251d42;
+  /* Slika poleđine koja stoji sve dok se karta ne izvuče */
+  background-image: url('https://upload.wikimedia.org/wikipedia/commons/5/54/Rider-Waite_Tarot_Deck_Card_Back.jpg');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: var(--accent-color);
+  transition: background-image 0.3s ease-in-out;
+}
     }
     button.btn-draw {
       background: var(--accent-color);
@@ -195,111 +199,119 @@
   </footer>
 
   <script>
-    // Tarot logika
-    const tarotDeck = [
-      { name: "Luda (The Fool)", meaning: "Novi počeci, nevinost, spontanost, slobodouman duh." },
-      { name: "Mag (The Magician)", meaning: "Manifestacija, resursi, snaga volje, veština." },
-      { name: "Visoka Sveštenica (The High Priestess)", meaning: "Intuicija, podsvest, unutrašnji glas, tajne." },
-      { name: "Carica (The Empress)", meaning: "Plodnost, obilje, priroda, kreativnost, majčinska energija." },
-      { name: "Car (The Emperor)", meaning: "Autoritet, struktura, stabilnost, kontrola." },
-      { name: "Sveštenik (The Hierophant)", meaning: "Tradicija, duhovno vođstvo, verovanja, obrazovanje." },
-      { name: "Ljubavnici (The Lovers)", meaning: "Ljubav, harmonija, veze, izbori i vrednosti." },
-      { name: "Kola (The Chariot)", meaning: "Kontrola, pobeda, odlučnost, fokus na cilj." },
-      { name: "Snaga (Strength)", meaning: "Hrabrost, strpljenje, saosećanje, unutrašnja snaga." },
-      { name: "Pustinjak (The Hermit)", meaning: "Samospoznaja, traženje istine, unutrašnji mir, povlačenje." },
-      { name: "Točak Sreće (Wheel of Fortune)", meaning: "Ciklusi, sudbina, promene, nepredvidivost." },
-      { name: "Pravda (Justice)", meaning: "Istina, pravednost, uzrok i posledica, zakoni." },
-      { name: "Obešeni Čovek (The Hanged Man)", meaning: "Neznatne žrtve, nova perspektiva, pauza, prepuštanje." },
-      { name: "Smrt (Death)", meaning: "Kraj jednog ciklusa, transformacija, novi početak." },
-      { name: "Umerenost (Temperance)", meaning: "Balans, umerenost, mir, ravnoteža." },
-      { name: "Đavo (The Devil)", meaning: "Vezanost, materijalizam, iluzije, loše navike." },
-      { name: "Kula (The Tower)", meaning: "Iznenadna promena, buđenje, rušenje starih iluzija." },
-      { name: "Zvezda (The Star)", meaning: "Nada, verovanje, inspiracija, obnova energije." },
-      { name: "Mesec (The Moon)", meaning: "Iluzije, strahovi, intuicija, nesigurnost." },
-      { name: "Sunce (The Sun)", meaning: "Radost, uspeh, pozitivnost, vitalnost." },
-      { name: "Sud (Judgement)", meaning: "Evaluacija, poziv, oproštaj, donošenje važnih odluka." },
-      { name: "Svet (The World)", meaning: "Završetak, ispunjenje, uspeh, integracija." }
-    ];
+  // Tradicionalni tarot špil sa slikama sa Wikimedia Commons
+  const tarotDeck = [
+    { name: "Luda (The Fool)", meaning: "Novi počeci, nevinost, spontanost, slobodouman duh.", image: "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg" },
+    { name: "Mag (The Magician)", meaning: "Manifestacija, resursi, snaga volje, veština.", image: "https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg" },
+    { name: "Visoka Sveštenica (The High Priestess)", meaning: "Intuicija, podsvest, unutrašnji glas, tajne.", image: "https://upload.wikimedia.org/wikipedia/commons/8/88/RWS_Tarot_02_High_Priestess.jpg" },
+    { name: "Carica (The Empress)", meaning: "Plodnost, obilje, priroda, kreativnost, majčinska energija.", image: "https://upload.wikimedia.org/wikipedia/commons/d/d2/RWS_Tarot_03_Empress.jpg" },
+    { name: "Car (The Emperor)", meaning: "Autoritet, struktura, stabilnost, kontrola.", image: "https://upload.wikimedia.org/wikipedia/commons/c/c3/RWS_Tarot_04_Emperor.jpg" },
+    { name: "Sveštenik (The Hierophant)", meaning: "Tradicija, duhovno vođstvo, verovanja, obrazovanje.", image: "https://upload.wikimedia.org/wikipedia/commons/8/8d/RWS_Tarot_05_Hierophant.jpg" },
+    { name: "Ljubavnici (The Lovers)", meaning: "Ljubav, harmonija, veze, izbori i vrednosti.", image: "https://upload.wikimedia.org/wikipedia/commons/3/3a/TheLovers.jpg" },
+    { name: "Kola (The Chariot)", meaning: "Kontrola, pobeda, odlučnost, fokus na cilj.", image: "https://upload.wikimedia.org/wikipedia/commons/9/9b/RWS_Tarot_07_Chariot.jpg" },
+    { name: "Snaga (Strength)", meaning: "Hrabrost, strpljenje, saosećanje, unutrašnja snaga.", image: "https://upload.wikimedia.org/wikipedia/commons/f/f5/RWS_Tarot_08_Strength.jpg" },
+    { name: "Pustinjak (The Hermit)", meaning: "Samospoznaja, traženje istine, unutrašnji mir, povlačenje.", image: "https://upload.wikimedia.org/wikipedia/commons/4/4d/RWS_Tarot_09_Hermit.jpg" },
+    { name: "Točak Sreće (Wheel of Fortune)", meaning: "Ciklusi, sudbina, promene, nepredvidivost.", image: "https://upload.wikimedia.org/wikipedia/commons/3/3c/RWS_Tarot_10_Wheel_of_Fortune.jpg" },
+    { name: "Pravda (Justice)", meaning: "Istina, pravednost, uzrok i posledica, zakoni.", image: "https://upload.wikimedia.org/wikipedia/commons/e/e0/RWS_Tarot_11_Justice.jpg" },
+    { name: "Obešeni Čovek (The Hanged Man)", meaning: "Neznatne žrtve, nova perspektiva, pauza, prepuštanje.", image: "https://upload.wikimedia.org/wikipedia/commons/2/2b/RWS_Tarot_12_Hanged_Man.jpg" },
+    { name: "Smrt (Death)", meaning: "Kraj jednog ciklusa, transformacija, novi početak.", image: "https://upload.wikimedia.org/wikipedia/commons/d/d7/RWS_Tarot_13_Death.jpg" },
+    { name: "Umerenost (Temperance)", meaning: "Balans, umerenost, mir, ravnoteža.", image: "https://upload.wikimedia.org/wikipedia/commons/f/f8/RWS_Tarot_14_Temperance.jpg" },
+    { name: "Đavo (The Devil)", meaning: "Vezanost, materijalizam, iluzije, loše navike.", image: "https://upload.wikimedia.org/wikipedia/commons/5/55/RWS_Tarot_15_Devil.jpg" },
+    { name: "Kula (The Tower)", meaning: "Iznenadna promena, buđenje, rušenje starih iluzija.", image: "https://upload.wikimedia.org/wikipedia/commons/5/53/RWS_Tarot_16_Tower.jpg" },
+    { name: "Zvezda (The Star)", meaning: "Nada, verovanje, inspiracija, obnova energije.", image: "https://upload.wikimedia.org/wikipedia/commons/d/db/RWS_Tarot_17_Star.jpg" },
+    { name: "Mesec (The Moon)", meaning: "Iluzije, strahovi, intuicija, nesigurnost.", image: "https://upload.wikimedia.org/wikipedia/commons/7/7f/RWS_Tarot_18_Moon.jpg" },
+    { name: "Sunce (The Sun)", meaning: "Radost, uspeh, pozitivnost, vitalnost.", image: "https://upload.wikimedia.org/wikipedia/commons/1/17/RWS_Tarot_19_Sun.jpg" },
+    { name: "Sud (Judgement)", meaning: "Evaluacija, poziv, oproštaj, donošenje važnih odluka.", image: "https://upload.wikimedia.org/wikipedia/commons/d/dd/RWS_Tarot_20_Judgement.jpg" },
+    { name: "Svet (The World)", meaning: "Završetak, ispunjenje, uspeh, integracija.", image: "https://upload.wikimedia.org/wikipedia/commons/ff/ff/RWS_Tarot_21_World.jpg" }
+  ];
 
-    function drawCard() {
-      const randomIndex = Math.floor(Math.random() * tarotDeck.length);
-      const card = tarotDeck[randomIndex];
-      document.getElementById('cardName').innerText = card.name;
-      document.getElementById('cardMeaning').innerText = card.meaning;
-      document.getElementById('cardDisplay').innerText = card.name;
-    }
+  function drawCard() {
+    const randomIndex = Math.floor(Math.random() * tarotDeck.length);
+    const card = tarotDeck[randomIndex];
+    
+    document.getElementById('cardName').innerText = card.name;
+    document.getElementById('cardMeaning').innerText = card.meaning;
+    
+    // Prikaz slike izvučene karte
+    const display = document.getElementById('cardDisplay');
+    display.innerText = '';
+    display.style.backgroundImage = `url('${card.image}')`;
+    display.style.backgroundSize = 'cover';
+    display.style.backgroundPosition = 'center';
+  }
 
-    // Učitavanje unetih podataka iz CMS-a
+  // Učitavanje unetih podataka iz CMS-a
   async function ucitajSveSekcije() {
-      // 0. Učitavanje pozadinske slike iz CMS-a
-      try {
-        const resIzgled = await fetch('/content/izgled.json');
-        if (resIzgled.ok) {
-          const dataIzgled = await resIzgled.json();
-          if (dataIzgled.pozadina) {
-            document.body.style.backgroundImage = `url('${dataIzgled.pozadina}')`;
-            document.body.style.backgroundSize = 'cover';
-            document.body.style.backgroundPosition = 'center';
-            document.body.style.backgroundAttachment = 'fixed';
-            document.body.style.backgroundRepeat = 'no-repeat';
-          }
+    // 0. Učitavanje pozadinske slike iz CMS-a
+    try {
+      const resIzgled = await fetch('/content/izgled.json');
+      if (resIzgled.ok) {
+        const dataIzgled = await resIzgled.json();
+        if (dataIzgled.pozadina) {
+          document.body.style.backgroundImage = `url('${dataIzgled.pozadina}')`;
+          document.body.style.backgroundSize = 'cover';
+          document.body.style.backgroundPosition = 'center';
+          document.body.style.backgroundAttachment = 'fixed';
+          document.body.style.backgroundRepeat = 'no-repeat';
         }
-      } catch (e) { console.error("Greška pri učitavanju pozadine:", e); }
+      }
+    } catch (e) { console.error("Greška pri učitavanju pozadine:", e); }
 
-      // 1. Horoskop
-      try {
-        const res = await fetch('/content/horoskop/mesečni.json');
-        if (res.ok) {
-          const data = await res.json();
-          const znakovi = ['ovan', 'bik', 'blizanci', 'rak', 'lav', 'devica', 'vaga', 'skorpija', 'strelac', 'jarac', 'vodolija', 'ribe'];
-          znakovi.forEach(z => {
-            const el = document.getElementById(`horoskop-${z}`);
-            if (el && data[z]) el.innerHTML = marked.parse(data[z]);
-          });
+    // 1. Horoskop
+    try {
+      const res = await fetch('/content/horoskop/mesečni.json');
+      if (res.ok) {
+        const data = await res.json();
+        const znakovi = ['ovan', 'bik', 'blizanci', 'rak', 'lav', 'devica', 'vaga', 'skorpija', 'strelac', 'jarac', 'vodolija', 'ribe'];
+        znakovi.forEach(z => {
+          const el = document.getElementById(`horoskop-${z}`);
+          if (el && data[z]) el.innerHTML = marked.parse(data[z]);
+        });
+      }
+    } catch (e) { console.error(e); }
+
+    // 2. Privatna Čitanja
+    try {
+      const res = await fetch('/content/privatna-citanja.json');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.title) document.getElementById('privatna-citanja-naslov').innerText = data.title;
+        if (data.description) document.getElementById('privatna-citanja-opis').innerHTML = marked.parse(data.description);
+        if (data.email) {
+          const emailEl = document.getElementById('privatna-citanja-email');
+          emailEl.innerText = data.email;
+          emailEl.href = `mailto:${data.email}`;
         }
-      } catch (e) { console.error(e); }
+      }
+    } catch (e) { console.error(e); }
 
-      // 2. Privatna Čitanja
-      try {
-        const res = await fetch('/content/privatna-citanja.json');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.title) document.getElementById('privatna-citanja-naslov').innerText = data.title;
-          if (data.description) document.getElementById('privatna-citanja-opis').innerHTML = marked.parse(data.description);
-          if (data.email) {
-            const emailEl = document.getElementById('privatna-citanja-email');
-            emailEl.innerText = data.email;
-            emailEl.href = `mailto:${data.email}`;
-          }
-        }
-      } catch (e) { console.error(e); }
-
-      // 3. Zanimljivosti
-      try {
-        const res = await fetch('https://api.github.com/repos/missdiablo69/mojadoza3/contents/content/zanimljivosti');
-        if (res.ok) {
-          const files = await res.json();
-          const container = document.getElementById('sekcija-zanimljivosti');
-          if (container && files.length > 0) {
-            container.innerHTML = '';
-            for (const f of files) {
-              if (f.name.endsWith('.md')) {
-                const r = await fetch(f.download_url);
-                const txt = await r.text();
-                const parts = txt.split('---');
-                if (parts.length >= 3) {
-                  const titleMatch = parts[1].match(/title:\  *"?([^"\r\n]+)"?/i);
-                  const title = titleMatch ? titleMatch[1] : 'Tekst';
-                  container.innerHTML += `<div class="card-item"><h3>${title}</h3><div>${marked.parse(parts.slice(2).join('---'))}</div></div>`;
-                }
+    // 3. Zanimljivosti
+    try {
+      const res = await fetch('https://api.github.com/repos/missdiablo69/mojadoza3/contents/content/zanimljivosti');
+      if (res.ok) {
+        const files = await res.json();
+        const container = document.getElementById('sekcija-zanimljivosti');
+        if (container && files.length > 0) {
+          container.innerHTML = '';
+          for (const f of files) {
+            if (f.name.endsWith('.md')) {
+              const r = await fetch(f.download_url);
+              const txt = await r.text();
+              const parts = txt.split('---');
+              if (parts.length >= 3) {
+                const titleMatch = parts[1].match(/title:\  *"?([^"\r\n]+)"?/i);
+                const title = titleMatch ? titleMatch[1] : 'Tekst';
+                container.innerHTML += `<div class="card-item"><h3>${title}</h3><div>${marked.parse(parts.slice(2).join('---'))}</div></div>`;
               }
             }
           }
         }
-      } catch (e) { console.error(e); }
-    }
+      }
+    } catch (e) { console.error(e); }
+  }
 
-    document.addEventListener("DOMContentLoaded", ucitajSveSekcije);
-  </script>
+  document.addEventListener("DOMContentLoaded", ucitajSveSekcije);
+</script>
 </body>
 </html>
+
