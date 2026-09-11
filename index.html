@@ -342,5 +342,100 @@
 
   // Pokrećemo učitavanje nakon što se stranica kompletno otvori
   document.addEventListener("DOMContentLoaded", ucitajHoroskop);
+    <script>
+  async function ucitajSveSekcije() {
+    // 1. UČITAVANJE MESEČNOG HOROSKOPA (Svi znakovi)
+    try {
+      const resHoroskop = await fetch('/content/horoskop/mesečni.json');
+      if (resHoroskop.ok) {
+        const data = await resHoroskop.json();
+        const znakovi = [
+          'ovan', 'bik', 'blizanci', 'rak', 
+          'lav', 'devica', 'vaga', 'skorpija', 
+          'strelac', 'jarac', 'vodolija', 'ribe'
+        ];
+
+        znakovi.forEach(znak => {
+          if (data[znak]) {
+            // Skripta traži ID npr. #horoskop-ovan, #horoskop-bik itd.
+            let el = document.querySelector(`#horoskop-${znak}`) || document.querySelector(`[data-znak="${znak}"]`);
+            if (el) {
+              el.innerHTML = marked.parse(data[znak]);
+            }
+          }
+        });
+      }
+    } catch (e) {
+      console.error("Greška pri učitavanju horoskopa:", e);
+    }
+
+    // 2. UČITAVANJE PRIVATNIH ČITANJA
+    try {
+      const resCitanja = await fetch('/content/privatna-citanja.json');
+      if (resCitanja.ok) {
+        const citanja = await resCitanja.json();
+        
+        // Povezivanje sa ugrađenim ID elementima
+        const titleEl = document.querySelector('#privatna-citanja-naslov');
+        const descEl = document.querySelector('#privatna-citanja-opis');
+        const emailEl = document.querySelector('#privatna-citanja-email');
+
+        if (titleEl && citanja.title) titleEl.innerText = citanja.title;
+        if (descEl && citanja.description) descEl.innerHTML = marked.parse(citanja.description);
+        if (emailEl && citanja.email) {
+          emailEl.innerText = citanja.email;
+          emailEl.href = `mailto:${citanja.email}`;
+        }
+      }
+    } catch (e) {
+      console.error("Greška pri učitavanju privatnih čitanja:", e);
+    }
+
+    // 3. UČITAVANJE ZANIMLJIVOSTI I TEKSTOVA
+    try {
+      const resLista = await fetch('https://api.github.com/repos/missdiablo69/mojadoza3/contents/content/zanimljivosti');
+      if (resLista.ok) {
+        const files = await resLista.json();
+        const kontejnerTekstovi = document.querySelector('#sekcija-zanimljivosti');
+        
+        if (kontejnerTekstovi) {
+          kontejnerTekstovi.innerHTML = ''; // Čišćenje starog sadržaja
+          
+          for (const file of files) {
+            if (file.name.endsWith('.md')) {
+              const resFile = await fetch(file.download_url);
+              const mdText = await resFile.text();
+              
+              const parts = mdText.split('---');
+              if (parts.length >= 3) {
+                const yaml = parts[1];
+                const body = parts.slice(2).join('---');
+
+                const naslovMatch = yaml.match(/title:\  *"?([^"\r\n]+)"?/i);
+                const opisMatch = yaml.match(/description:\  *"?([^"\r\n]+)"?/i);
+
+                const naslov = naslovMatch ? naslovMatch[1] : 'Tekst';
+                const opis = opisMatch ? opisMatch[1] : '';
+
+                // Automatsko generisanje HTML strukture sa ID-evima i klasama za svaki članak
+                kontejnerTekstovi.innerHTML += `
+                  <article class="tekst-kartica" id="clanak-${file.name.replace('.md', '')}">
+                    <h3 id="naslov-${file.name.replace('.md', '')}">${naslov}</h3>
+                    <p class="opis">${opis}</p>
+                    <div class="sadrzaj">${marked.parse(body)}</div>
+                  </article>
+                `;
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Greška pri učitavanju tekstova:", e);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", ucitajSveSekcije);
+</script>
 </body>
 </html>
