@@ -230,7 +230,22 @@
     }
 
     // Učitavanje unetih podataka iz CMS-a
-    async function ucitajSveSekcije() {
+  async function ucitajSveSekcije() {
+      // 0. Učitavanje pozadinske slike iz CMS-a
+      try {
+        const resIzgled = await fetch('/content/izgled.json');
+        if (resIzgled.ok) {
+          const dataIzgled = await resIzgled.json();
+          if (dataIzgled.pozadina) {
+            document.body.style.backgroundImage = `url('${dataIzgled.pozadina}')`;
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+            document.body.style.backgroundAttachment = 'fixed';
+            document.body.style.backgroundRepeat = 'no-repeat';
+          }
+        }
+      } catch (e) { console.error("Greška pri učitavanju pozadine:", e); }
+
       // 1. Horoskop
       try {
         const res = await fetch('/content/horoskop/mesečni.json');
