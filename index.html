@@ -380,7 +380,6 @@ async function ucitajSveSekcije() {
     if (resIzgled.ok) {
       const dataIzgled = await resIzgled.json();
       
-      // Pozadinska slika
       if (dataIzgled.pozadina) {
         document.body.style.backgroundImage = `url('${dataIzgled.pozadina}')`;
         document.body.style.backgroundSize = 'cover';
@@ -388,7 +387,6 @@ async function ucitajSveSekcije() {
         document.body.style.backgroundAttachment = 'fixed';
       }
 
-      // Pozadinska muzika
       if (dataIzgled.muzika) {
         const audio = document.getElementById('bg-audio');
         const btn = document.getElementById('audio-btn');
@@ -400,18 +398,18 @@ async function ucitajSveSekcije() {
     console.error("Greška pri učitavanju izgleda:", e);
   }
 
-  // 1. Horoskop
+  // 1. Horoskop (ispravljena petlja za učitavanje teksta)
   const znaci = ['ovan', 'bik', 'blizanci', 'rak', 'lav', 'devica', 'vaga', 'skorpija', 'strelac', 'jarac', 'vodolija', 'ribe'];
-  znaci.forEach(async (znak) => {
+  for (const znak of znaci) {
     try {
       const res = await fetch(`/content/horoskop/${znak}.json`);
       if (res.ok) {
         const data = await res.json();
         const el = document.getElementById(`horoskop-${znak}`);
-        if (el) el.innerHTML = marked.parse(data.tekst || '');
+        if (el) el.innerHTML = marked.parse(data.tekst || data.sadrzaj || '');
       }
     } catch (e) {}
-  });
+  }
 
   // 2. Zanimljivosti
   try {
@@ -423,7 +421,7 @@ async function ucitajSveSekcije() {
         kontejner.innerHTML = zanimljivosti.map(z => `
           <div class="card-item">
             <h3>${z.naslov || ''}</h3>
-            <div>${marked.parse(z.tekst || '')}</div>
+            <div>${marked.parse(z.tekst || z.opis || '')}</div>
           </div>
         `).join('');
       }
@@ -444,7 +442,7 @@ async function ucitajSveSekcije() {
       }
     }
   } catch (e) {}
-}
+  }
 
 function prikaziZnak(znakId) {
   const sveKartice = document.querySelectorAll('.horoskop-kartica');
@@ -468,8 +466,9 @@ function toggleAudio() {
   }
 }
 
-// Pokretanje učitavanja pri punjenju stranice
+// Pokretanje učitavanja pri otvaranju sajta
 ucitajSveSekcije();
 </script>
 </body>
 </html>
+}
