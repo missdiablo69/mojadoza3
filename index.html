@@ -325,83 +325,317 @@
       display.style.backgroundImage = `url('${card.image}')`;
     }
 
-    async function ucitajSveSekcije() {
-      // Izgled
+    // ------------------------------------------------------------
+    // CMS / BACK OFFICE LOADER
+    // ------------------------------------------------------------
+    // VAŽNO:
+    // 1) Svi CMS fajlovi se čitaju relativno od index.html.
+    // 2) Dodajemo cache-busting da browser ne prikazuje staru verziju.
+    // 3) Ne zavisimo od redosleda GitHub API liste za horoskop.
+    // 4) Podržavamo više uobičajenih struktura JSON-a koje back office može da sačuva.
+    // ------------------------------------------------------------
+
+    const CMS_BASE = './content/';
+    const GITHUB_API_BASE =
+      'https://api.github.com/repos/missdiablo69/mojadoza3/contents/content/horoskop';
+
+    function cmsUrl(path) {
+      const separator = path.includes('?') ? '&' : '?';
+      return `${CMS_BASE}${path}${separator}_=${Date.now()}`;
+    }
+
+    async function fetchJson(path) {
+      const response = await fetch(cmsUrl(path), {
+        method: 'GET',
+        cache: 'no-store',
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (!response.ok) {
+        throw new Error(`CMS fajl nije pronađen: ${path} (${response.status})`);
+      }
+
+      return await response.json();
+    }
+
+    function normalizujTekst(value) {
+      if (value === null || value === undefined) return '';
+
+      if (typeof value === 'string') return value;
+
+      // Ako CMS čuva objekat sa body/content/tekst/value poljem.
+      if (typeof value === 'object' && !Array.isArray(value)) {
+        return (
+          value.body ??
+          value.content ??
+          value.tekst ??
+          value.text ??
+          value.opis ??
+          value.description ??
+          value.value ??
+          ''
+        );
+      }
+
+      return String(value);
+    }
+
+    function renderujTekst(element, value) {
+      if (!element) return false;
+
+      const tekst = normalizujTekst(value);
+      if (!tekst) return false;
+
+      // marked je učitan u <head>. Fallback je običan tekst ako CDN nije dostupan.
+      if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+        element.innerHTML = marked.parse(tekst);
+      } else {
+        element.textContent = tekst;
+      }
+
+      return true;
+    }
+
+    function nadjiZnak(data, znak) {
+      if (!data || typeof data !== 'object') return '';
+
+      // Direktno: { "ovan": "..." }
+      if (data[znak] !== undefined) return data[znak];
+
+      // Često korišćene CMS strukture:
+      // { "horoskop": { "ovan": "..." } }
+      if (data.horoskop && data.horoskop[znak] !== undefined) {
+        return data.horoskop[znak];
+      }
+
+      // { "znaci": { "ovan": "..." } }
+      if (data.znaci && data.znaci[znak] !== undefined) {
+        return data.znaci[znak];
+      }
+
+      // { "signs": { "ovan": "..." } }
+      if (data.signs && data.signs[znak] !== undefined) {
+        return data.signs[znak];
+      }
+
+      return '';
+    }
+
+    async function ucitajIzgled() {
       try {
-        const resIzgled = await fetch('./content/izgled.json');
-        if (resIzgled.ok) {
-          const dataIzgled = await resIzgled.json();
-          if (dataIzgled.pozadina) {
-            document.body.style.backgroundImage = `url('${dataIzgled.pozadina}')`;
-            document.body.style.backgroundSize = 'cover';
-            document.body.style.backgroundPosition = 'center';
-            document.body.style.backgroundAttachment = 'fixed';
+        const dataIzgled = await fetchJson('izgled.json');
+
+        if (dataIzgled.pozadina) {
+          document.body.style.backgroundImage =
+            `url('${String(dataIzgled.pozadina).replace(/'/g, "\\'")}')`;
+          document.body.style.backgroundSize = 'cover';
+          document.body.style.backgroundPosition = 'center';
+          document.body.style.backgroundAttachment = 'fixed';
+        }
+
+        if (dataIzgled.muzika) {
+          const audio = document.getElementById('bg-audio');
+          const btn = document.getElementById('audio-btn');
+
+          audio.src = dataIzgled.muzika;
+          btn.style.display = 'inline-block';
+        }
+      } catch (e) {
+        console.warn('Izgled nije učitan:', e.message);
+      }
+    }
+
+    async function pronadjiNajnovijiHoroskop() {
+      // Prvo pokušajmo GitHub API, jer back office može praviti novi JSON
+      // za svaki mjesec. Biramo fajl po imenu/datumskom redosledu,
+      // a ne po redosledu koji GitHub API vrati.
+      try {
+        const response = await fetch(
+          `${GITHUB_API_BASE}?_=${Date.now()}`,
+          {
+            cache: 'no-store',
+            headers: { 'Accept': 'application/vnd.github+json' }
           }
-          if (dataIzgled.muzika) {
-            const audio = document.getElementById('bg-audio');
-            const btn = document.getElementById('audio-btn');
-            audio.src = dataIzgled.muzika;
-            btn.style.display = 'inline-block';
+        );
+
+        if (response.ok) {
+          const files = await response.json();
+
+          const jsonFiles = files
+            .filter(file =>
+              file &&
+              file.type === 'file' &&
+              /\.json$/i.test(file.name) &&
+              file.name.toLowerCase() !== 'mesečni.json' &&
+              file.name.toLowerCase() !== 'mesecni.json'
+            )
+            .sort((a, b) => a.name.localeCompare(b.name, undefined, {
+              numeric: true,
+              sensitivity: 'base'
+            }));
+
+          if (jsonFiles.length) {
+            return jsonFiles[jsonFiles.length - 1].name;
           }
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn('GitHub lista horoskopa nije dostupna:', e.message);
+      }
 
-      // Mesečni Horoskop
+      // Fallback: ako back office koristi uvijek isti naziv.
+      const fallbackNames = [
+        'mesečni.json',
+        'mesecni.json',
+        'horoskop.json'
+      ];
+
+      for (const name of fallbackNames) {
+        try {
+          await fetchJson(`horoskop/${name}`);
+          return name;
+        } catch (_) {}
+      }
+
+      return null;
+    }
+
+    async function ucitajHoroskop() {
+      const znaci = [
+        'ovan', 'bik', 'blizanci', 'rak', 'lav', 'devica',
+        'vaga', 'skorpija', 'strelac', 'jarac', 'vodolija', 'ribe'
+      ];
+
       try {
-        const resList = await fetch('https://api.github.com/repos/missdiablo69/mojadoza3/contents/content/horoskop');
-        if (resList.ok) {
-          const files = await resList.json();
-          const jsonFiles = files.filter(f => f.name.endsWith('.json') && f.name !== 'mesečni.json');
-          if (jsonFiles.length > 0) {
-            const latestFile = jsonFiles[jsonFiles.length - 1];
-            const resData = await fetch(`./content/horoskop/${latestFile.name}`);
-            if (resData.ok) {
-              const data = await resData.json();
-              const znaci = ['ovan', 'bik', 'blizanci', 'rak', 'lav', 'devica', 'vaga', 'skorpija', 'strelac', 'jarac', 'vodolija', 'ribe'];
-              znaci.forEach(znak => {
-                const el = document.getElementById(`horoskop-${znak}`);
-                // Proverava i pojedinačne znake i opšte polje "body" ili "tekst" iz CMS-a
-                const tekstZnaka = data[znak] || data.body || data.tekst;
-                if (el && tekstZnaka) {
-                  el.innerHTML = marked.parse(tekstZnaka);
-                }
-              });
+        const latestFile = await pronadjiNajnovijiHoroskop();
+
+        if (!latestFile) {
+          throw new Error('Nijedan horoskopski JSON fajl nije pronađen.');
+        }
+
+        const data = await fetchJson(`horoskop/${latestFile}`);
+
+        znaci.forEach(znak => {
+          const el = document.getElementById(`horoskop-${znak}`);
+          if (!el) return;
+
+          const tekst = nadjiZnak(data, znak);
+
+          if (!renderujTekst(el, tekst)) {
+            // Ako JSON sadrži samo jedno opšte polje, koristimo ga.
+            const opstiTekst =
+              data.body ??
+              data.tekst ??
+              data.content ??
+              data.opis ??
+              '';
+
+            if (!renderujTekst(el, opstiTekst)) {
+              el.innerHTML = '<p>Sadržaj trenutno nije dostupan.</p>';
             }
           }
-        }
-      } catch (e) {}
-
-      // Zanimljivosti
-      try {
-        const resZ = await fetch('./content/zanimljivosti.json');
-        if (resZ.ok) {
-          const zanimljivosti = await resZ.json();
-          const kontejner = document.getElementById('sekcija-zanimljivosti');
-          if (kontejner && Array.isArray(zanimljivosti)) {
-            kontejner.innerHTML = zanimljivosti.map(z => `
-              <div class="card-item">
-                <h3>${z.naslov || ''}</h3>
-                <div>${marked.parse(z.tekst || z.opis || '')}</div>
-              </div>
-            `).join('');
+        });
+      } catch (e) {
+        console.error('Greška pri učitavanju horoskopa:', e);
+        znaci.forEach(znak => {
+          const el = document.getElementById(`horoskop-${znak}`);
+          if (el) {
+            el.innerHTML = '<p>Sadržaj trenutno nije dostupan.</p>';
           }
-        }
-      } catch (e) {}
+        });
+      }
+    }
 
-      // Privatna Čitanja
+    async function ucitajZanimljivosti() {
       try {
-        const resP = await fetch('./content/privatna-citanja.json');
-        if (resP.ok) {
-          const dataP = await resP.json();
-          if (dataP.naslov) document.getElementById('privatna-citanja-naslov').innerText = dataP.naslov;
-          if (dataP.opis) document.getElementById('privatna-citanja-opis').innerHTML = marked.parse(dataP.opis);
-          if (dataP.email) {
-            const emailEl = document.getElementById('privatna-citanja-email');
-            emailEl.innerText = dataP.email;
-            emailEl.href = `mailto:${dataP.email}`;
-          }
+        const zanimljivosti = await fetchJson('zanimljivosti.json');
+        const kontejner = document.getElementById('sekcija-zanimljivosti');
+
+        if (!kontejner) return;
+
+        let lista = zanimljivosti;
+
+        // Podržava i { "zanimljivosti": [...] } / { "posts": [...] }.
+        if (!Array.isArray(lista)) {
+          lista =
+            zanimljivosti.zanimljivosti ??
+            zanimljivosti.posts ??
+            zanimljivosti.tekstovi ??
+            [];
         }
-      } catch (e) {}
+
+        if (!Array.isArray(lista) || lista.length === 0) {
+          kontejner.innerHTML = '<p>Trenutno nema objavljenih tekstova.</p>';
+          return;
+        }
+
+        kontejner.innerHTML = lista.map(z => {
+          const naslov = z?.naslov ?? z?.title ?? '';
+          const tekst = z?.tekst ?? z?.opis ?? z?.body ?? z?.content ?? '';
+
+          const safeTitle = String(naslov)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+
+          const renderedText =
+            typeof marked !== 'undefined' && typeof marked.parse === 'function'
+              ? marked.parse(normalizujTekst(tekst))
+              : String(normalizujTekst(tekst))
+                  .replace(/&/g, '&amp;')
+                  .replace(/</g, '&lt;')
+                  .replace(/>/g, '&gt;')
+                  .replace(/\n/g, '<br>');
+
+          return `
+            <div class="card-item">
+              <h3>${safeTitle}</h3>
+              <div>${renderedText}</div>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {
+        console.error('Greška pri učitavanju zanimljivosti:', e);
+        document.getElementById('sekcija-zanimljivosti').innerHTML =
+          '<p>Sadržaj trenutno nije dostupan.</p>';
+      }
+    }
+
+    async function ucitajPrivatnaCitanja() {
+      try {
+        const dataP = await fetchJson('privatna-citanja.json');
+
+        const naslovEl = document.getElementById('privatna-citanja-naslov');
+        const opisEl = document.getElementById('privatna-citanja-opis');
+        const emailEl = document.getElementById('privatna-citanja-email');
+
+        const naslov = dataP.naslov ?? dataP.title;
+        const opis = dataP.opis ?? dataP.tekst ?? dataP.body ?? dataP.content;
+        const email = dataP.email ?? dataP.contactEmail;
+
+        if (naslov) naslovEl.innerText = normalizujTekst(naslov);
+        if (opis) renderujTekst(opisEl, opis);
+
+        if (email) {
+          const emailText = normalizujTekst(email).trim();
+          emailEl.innerText = emailText;
+          emailEl.href = `mailto:${emailText}`;
+        }
+      } catch (e) {
+        console.error('Greška pri učitavanju privatnih čitanja:', e);
+      }
+    }
+
+    async function ucitajSveSekcije() {
+      // Učitavamo nezavisno da kvar jednog JSON-a ne zaustavi ostale.
+      await Promise.allSettled([
+        ucitajIzgled(),
+        ucitajHoroskop(),
+        ucitajZanimljivosti(),
+        ucitajPrivatnaCitanja()
+      ]);
+
+      console.log('Moja Doza CMS sadržaj je učitan.');
     }
 
     function prikaziZnak(znakId) {
@@ -426,4 +660,3 @@
     ucitajSveSekcije();
   </script>
 </body>
-</html>
