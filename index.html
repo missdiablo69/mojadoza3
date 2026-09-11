@@ -445,58 +445,56 @@
       }
     }
 
-    async function pronadjiNajnovijiHoroskop() {
-      // Prvo pokušajmo GitHub API, jer back office može praviti novi JSON
-      // za svaki mjesec. Biramo fajl po imenu/datumskom redosledu,
-      // a ne po redosledu koji GitHub API vrati.
-      try {
-        const response = await fetch(
-          `${GITHUB_API_BASE}?_=${Date.now()}`,
-          {
-            cache: 'no-store',
-            headers: { 'Accept': 'application/vnd.github+json' }
+    // Čitanje Decap CMS markdown fajlova sa front matter-om.
+    // Podržava i stare JSON fajlove, tako da postojeći sadržaj ne moraš mijenjati.
+    async function fetchGitHubFolder(folder) {
+      const response = await fetch(
+        `https://api.github.com/repos/missdiablo69/mojadoza3/contents/${folder}?_=${Date.now()}`,
+        { cache: 'no-store', headers: { 'Accept': 'application/vnd.github+json' } }
+      );
+      if (!response.ok) throw new Error(`GitHub folder nije dostupan: ${folder} (${response.status})`);
+      return await response.json();
+    }
+
+    async function fetchText(url) {
+      const response = await fetch(`${url}${url.includes('?') ? '&' : '?'}_=${Date.now()}`, {
+        cache: 'no-store'
+      });
+      if (!response.ok) throw new Error(`Fajl nije dostupan (${response.status})`);
+      return await response.text();
+    }
+
+    function parseCmsMarkdown(raw) {
+      let front = {};
+      let body = raw || '';
+
+      // Decap CMS najčešće čuva:
+      // ---
+      // title: "..."
+      // description: "..."
+      // ---
+      // sadržaj...
+      const match = body.match(/^---\s*\n([\s\S]*?)\n---\s*\n?([\s\S]*)$/);
+
+      if (match) {
+        const frontMatter = match[1];
+        body = match[2].trim();
+
+        // Namjerno jednostavan parser za naša poznata CMS polja.
+        // Podržava navodnike, nenavodnike i vrijednosti sa dvotačkom.
+        frontMatter.split(/\r?\n/).forEach(line => {
+          const m = line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
+          if (!m) return;
+          let value = m[2].trim();
+          if ((value.startsWith('"') && value.endsWith('"')) ||
+              (value.startsWith("'") && value.endsWith("'"))) {
+            value = value.slice(1, -1);
           }
-        );
-
-        if (response.ok) {
-          const files = await response.json();
-
-          const jsonFiles = files
-            .filter(file =>
-              file &&
-              file.type === 'file' &&
-              /\.json$/i.test(file.name) &&
-              file.name.toLowerCase() !== 'mesečni.json' &&
-              file.name.toLowerCase() !== 'mesecni.json'
-            )
-            .sort((a, b) => a.name.localeCompare(b.name, undefined, {
-              numeric: true,
-              sensitivity: 'base'
-            }));
-
-          if (jsonFiles.length) {
-            return jsonFiles[jsonFiles.length - 1].name;
-          }
-        }
-      } catch (e) {
-        console.warn('GitHub lista horoskopa nije dostupna:', e.message);
+          front[m[1]] = value;
+        });
       }
 
-      // Fallback: ako back office koristi uvijek isti naziv.
-      const fallbackNames = [
-        'mesečni.json',
-        'mesecni.json',
-        'horoskop.json'
-      ];
-
-      for (const name of fallbackNames) {
-        try {
-          await fetchJson(`horoskop/${name}`);
-          return name;
-        } catch (_) {}
-      }
-
-      return null;
+      return { ...front, body, content: body };
     }
 
     async function ucitajHoroskop() {
@@ -506,71 +504,92 @@
       ];
 
       try {
-        const latestFile = await pronadjiNajnovijiHoroskop();
+        const files = await fetchGitHubFolder('content/horoskop');
+        const cmsFiles = files
+          .filter(f => f.type === 'file' && /\.(md|markdown|json)$/i.test(f.name))
+          .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
 
-        if (!latestFile) {
-          throw new Error('Nijedan horoskopski JSON fajl nije pronađen.');
+        if (!cmsFiles.length) throw new Error('Nema horoskopskih fajlova.');
+
+        const latest = cmsFiles[cmsFiles.length - 1];
+        const raw = await fetchText(latest.download_url || latest.html_url);
+
+        let data;
+        if (/\.json$/i.test(latest.name)) {
+          try {
+            data = JSON.parse(raw);
+          } catch (e) {
+            throw new Error(`Horoskop JSON nije ispravan: ${latest.name}`);
+          }
+        } else {
+          data = parseCmsMarkdown(raw);
         }
-
-        const data = await fetchJson(`horoskop/${latestFile}`);
 
         znaci.forEach(znak => {
           const el = document.getElementById(`horoskop-${znak}`);
           if (!el) return;
 
-          const tekst = nadjiZnak(data, znak);
+          // Decap konfiguracija ima posebno polje za svaki znak.
+          const tekst = data[znak];
 
-          if (!renderujTekst(el, tekst)) {
-            // Ako JSON sadrži samo jedno opšte polje, koristimo ga.
-            const opstiTekst =
-              data.body ??
-              data.tekst ??
-              data.content ??
-              data.opis ??
-              '';
-
-            if (!renderujTekst(el, opstiTekst)) {
-              el.innerHTML = '<p>Sadržaj trenutno nije dostupan.</p>';
-            }
+          if (tekst) {
+            renderujTekst(el, tekst);
+          } else if (data.body || data.content) {
+            // Fallback za dokumente koji imaju samo jedno opšte tijelo.
+            renderujTekst(el, data.body || data.content);
+          } else {
+            el.innerHTML = '<p>Sadržaj trenutno nije dostupan.</p>';
           }
         });
+
       } catch (e) {
         console.error('Greška pri učitavanju horoskopa:', e);
         znaci.forEach(znak => {
           const el = document.getElementById(`horoskop-${znak}`);
-          if (el) {
-            el.innerHTML = '<p>Sadržaj trenutno nije dostupan.</p>';
-          }
+          if (el) el.innerHTML = '<p>Sadržaj trenutno nije dostupan.</p>';
         });
       }
     }
 
     async function ucitajZanimljivosti() {
+      const kontejner = document.getElementById('sekcija-zanimljivosti');
+      if (!kontejner) return;
+
       try {
-        const zanimljivosti = await fetchJson('zanimljivosti.json');
-        const kontejner = document.getElementById('sekcija-zanimljivosti');
+        // Prema config.yml, Zanimljivosti nisu jedan JSON fajl nego folder:
+        // content/zanimljivosti/*.md
+        const files = await fetchGitHubFolder('content/zanimljivosti');
+        const cmsFiles = files
+          .filter(f => f.type === 'file' && /\.(md|markdown|json)$/i.test(f.name))
+          .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
 
-        if (!kontejner) return;
-
-        let lista = zanimljivosti;
-
-        // Podržava i { "zanimljivosti": [...] } / { "posts": [...] }.
-        if (!Array.isArray(lista)) {
-          lista =
-            zanimljivosti.zanimljivosti ??
-            zanimljivosti.posts ??
-            zanimljivosti.tekstovi ??
-            [];
-        }
-
-        if (!Array.isArray(lista) || lista.length === 0) {
+        if (!cmsFiles.length) {
           kontejner.innerHTML = '<p>Trenutno nema objavljenih tekstova.</p>';
           return;
         }
 
-        kontejner.innerHTML = lista.map(z => {
-          const naslov = z?.naslov ?? z?.title ?? '';
-          const tekst = z?.tekst ?? z?.opis ?? z?.body ?? z?.content ?? '';
+        const posts = [];
+        for (const file of cmsFiles) {
+          try {
+            const raw = await fetchText(file.download_url || file.html_url);
+            const data = /\.json$/i.test(file.name) ? JSON.parse(raw) : parseCmsMarkdown(raw);
+            posts.push(data);
+          } catch (fileError) {
+            console.warn(`Nije moguće učitati ${file.name}:`, fileError);
+          }
+        }
+
+        if (!posts.length) {
+          kontejner.innerHTML = '<p>Trenutno nema objavljenih tekstova.</p>';
+          return;
+        }
+
+        kontejner.innerHTML = posts.map(z => {
+          // Tačno odgovara config.yml-u: title + description + body.
+          const naslov = z.title ?? z.naslov ?? '';
+          const opis = z.description ?? z.opis ?? '';
+          const body = z.body ?? z.tekst ?? z.content ?? '';
+          const tekst = body || opis;
 
           const safeTitle = String(naslov)
             .replace(/&/g, '&amp;')
@@ -580,8 +599,8 @@
 
           const renderedText =
             typeof marked !== 'undefined' && typeof marked.parse === 'function'
-              ? marked.parse(normalizujTekst(tekst))
-              : String(normalizujTekst(tekst))
+              ? marked.parse(String(tekst))
+              : String(tekst)
                   .replace(/&/g, '&amp;')
                   .replace(/</g, '&lt;')
                   .replace(/>/g, '&gt;')
@@ -590,14 +609,15 @@
           return `
             <div class="card-item">
               <h3>${safeTitle}</h3>
+              ${opis && !body ? `<p>${String(opis).replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>` : ''}
               <div>${renderedText}</div>
             </div>
           `;
         }).join('');
+
       } catch (e) {
         console.error('Greška pri učitavanju zanimljivosti:', e);
-        document.getElementById('sekcija-zanimljivosti').innerHTML =
-          '<p>Sadržaj trenutno nije dostupan.</p>';
+        kontejner.innerHTML = '<p>Sadržaj trenutno nije dostupan.</p>';
       }
     }
 
@@ -609,8 +629,10 @@
         const opisEl = document.getElementById('privatna-citanja-opis');
         const emailEl = document.getElementById('privatna-citanja-email');
 
-        const naslov = dataP.naslov ?? dataP.title;
-        const opis = dataP.opis ?? dataP.tekst ?? dataP.body ?? dataP.content;
+        // Prema config.yml-u, polja se zovu title, description i email.
+        // Podržavamo i stare nazive radi kompatibilnosti.
+        const naslov = dataP.title ?? dataP.naslov;
+        const opis = dataP.description ?? dataP.opis ?? dataP.tekst ?? dataP.body ?? dataP.content;
         const email = dataP.email ?? dataP.contactEmail;
 
         if (naslov) naslovEl.innerText = normalizujTekst(naslov);
