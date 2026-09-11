@@ -121,7 +121,22 @@
       text-align: center;
       font-size: 0.9rem;
       border-top: 1px solid #251d42;
-    }
+    .btn-audio {
+  background: transparent;
+  border: 1px solid var(--accent-color);
+  color: var(--text-color);
+  padding: 5px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  margin-left: 15px;
+  transition: all 0.3s ease;
+}
+
+.btn-audio:hover {
+  background: var(--accent-color);
+  color: #000;
+}
     .disclaimer-box {
       background: #231b10;
       border: 1px solid #8a6d1c;
@@ -166,6 +181,7 @@
   </style>
 </head>
 <body>
+  <audio id="bg-audio" loop></audio>
   <header>
     <h1>MOJA DOZA</h1>
     <nav>
@@ -189,6 +205,7 @@
         </div>
       <a href="#zanimljivosti">Zanimljivosti</a>
       <a href="#privatna-citanja">Privatna Čitanja</a>
+      <button id="audio-btn" onclick="toggleAudio()" class="btn-audio" style="display:none;">🎵 Muzika</button>
     </nav>
   </header>
 
@@ -356,23 +373,31 @@
     display.style.backgroundImage = `url('${card.image}')`;
   }
 
-  // Učitavanje unetih podataka iz CMS-a
-  async function ucitajSveSekcije() {
-    // 0. Učitavanje pozadinske slike iz CMS-a
-    try {
-      const resIzgled = await fetch('/content/izgled.json');
-      if (resIzgled.ok) {
-        const dataIzgled = await resIzgled.json();
-        if (dataIzgled.pozadina) {
-          document.body.style.backgroundImage = `url('${dataIzgled.pozadina}')`;
-          document.body.style.backgroundSize = 'cover';
-          document.body.style.backgroundPosition = 'center';
-          document.body.style.backgroundAttachment = 'fixed';
-          document.body.style.backgroundRepeat = 'no-repeat';
-        }
-      }
-    } catch (e) { console.error("Greška pri učitavanju pozadine:", e); }
+  // 0. Učitavanje izgleda (pozadina i muzika)
+try {
+  const resIzgled = await fetch('/content/izgled.json');
+  if (resIzgled.ok) {
+    const dataIzgled = await resIzgled.json();
+    
+    // Pozadinska slika
+    if (dataIzgled.pozadina) {
+      document.body.style.backgroundImage = `url('${dataIzgled.pozadina}')`;
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center';
+      document.body.style.backgroundAttachment = 'fixed';
+    }
 
+    // Pozadinska muzika
+    if (dataIzgled.muzika) {
+      const audio = document.getElementById('bg-audio');
+      const btn = document.getElementById('audio-btn');
+      audio.src = dataIzgled.muzika;
+      btn.style.display = 'inline-block'; // Prikaži dugme samo ako postoji muzika
+    }
+  }
+} catch (e) {
+  console.error("Greška pri učitavanju izgleda:", e);
+}
     // 1. Horoskop
     try {
       const res = await fetch('/content/horoskop/mesečni.json');
@@ -428,15 +453,25 @@ prikaziZnak('ovan'); // Automatski prikazuje samo Ovna kada se stranica učita
 
   document.addEventListener("DOMContentLoaded", ucitajSveSekcije);
   function prikaziZnak(znakId) {
-  // Prikaži sve kartice ako se traži
   const sveKartice = document.querySelectorAll('.horoskop-kartica');
   sveKartice.forEach(k => k.style.display = 'none');
-
   const izabrana = document.getElementById(`kartica-${znakId}`);
   if (izabrana) {
     izabrana.style.display = 'block';
   }
 }
+
+function toggleAudio() {
+  const audio = document.getElementById('bg-audio');
+  const btn = document.getElementById('audio-btn');
+
+  if (audio.paused) {
+    audio.play();
+    btn.innerHTML = "🔊 Muzika Uključena";
+  } else {
+    audio.pause();
+    btn.innerHTML = "🔇 Muzika Utišana";
+  }
+}
 </script>
-</body>
 </html>
