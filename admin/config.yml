@@ -6,7 +6,17 @@ media_folder: "images/uploads"
 public_folder: "/images/uploads"
 
 collections:
-  # 1. SEKCIJA: MESEČNI HOROSKOP (Posebna polja za svih 12 znakova)
+  # 1. PODEŠAVANJA SAJTA I POZADINA
+  - name: "postavke"
+    label: "Podešavanja Sajta"
+    files:
+      - name: "izgled"
+        label: "Pozadina Sajta"
+        file: "content/izgled.json"
+        fields:
+          - { label: "Pozadinska Slika", name: "pozadina", widget: "image", required: false }
+
+  # 2. MESEČNI HOROSKOP
   - name: "mesecni_horoskop"
     label: "Mesečni Horoskop (Svi Znakovi)"
     files:
@@ -27,7 +37,7 @@ collections:
           - { label: "Vodolija", name: "vodolija", widget: "markdown" }
           - { label: "Ribe", name: "ribe", widget: "markdown" }
 
-  # 2. SEKCIJA: ZANIMLJIVOSTI & TEKSTOVI
+  # 3. ZANIMLJIVOSTI & TEKSTOVI
   - name: "zanimljivosti"
     label: "Zanimljivosti & Tekstovi"
     folder: "content/zanimljivosti"
@@ -38,7 +48,7 @@ collections:
       - { label: "Kratak Opis", name: "description", widget: "string" }
       - { label: "Sadržaj Teksta", name: "body", widget: "markdown" }
 
-  # 3. SEKCIJA: PRIVATNA ČITANJA
+  # 4. PRIVATNA ČITANJA
   - name: "privatna_citanja"
     label: "Privatna Čitanja"
     files:
