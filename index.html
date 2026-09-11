@@ -129,7 +129,40 @@
       border-radius: 6px;
       margin-bottom: 20px;
       font-size: 0.85rem;
-    }
+    /* Padajući Meni */
+.dropdown {
+  display: inline-block;
+  position: relative;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: var(--card-bg);
+  min-width: 150px;
+  box-shadow: 0px 8px 16px rgba(0,0,0,0.6);
+  border: 1px solid var(--accent-color);
+  border-radius: 8px;
+  z-index: 1000;
+  text-align: left;
+}
+
+.dropdown-content a {
+  color: var(--text-color);
+  padding: 8px 15px;
+  display: block;
+  margin: 0;
+  font-weight: normal;
+}
+
+.dropdown-content a:hover {
+  background-color: #251d42;
+  color: var(--accent-color);
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
   </style>
 </head>
 <body>
@@ -137,7 +170,23 @@
     <h1>MOJA DOZA</h1>
     <nav>
       <a href="#karta-dana">Karta Dana</a>
-      <a href="#horoskop">Mesečni Horoskop</a>
+      <div class="dropdown">
+        <a href="#horoskop" class="dropbtn">Mesečni Horoskop ▾</a>
+        <div class="dropdown-content">
+          <a href="#horoskop" onclick="prikaziZnak('ovan')">Ovan</a>
+          <a href="#horoskop" onclick="prikaziZnak('bik')">Bik</a>
+          <a href="#horoskop" onclick="prikaziZnak('blizanci')">Blizanci</a>
+          <a href="#horoskop" onclick="prikaziZnak('rak')">Rak</a>
+          <a href="#horoskop" onclick="prikaziZnak('lav')">Lav</a>
+          <a href="#horoskop" onclick="prikaziZnak('devica')">Devica</a>
+          <a href="#horoskop" onclick="prikaziZnak('vaga')">Vaga</a>
+          <a href="#horoskop" onclick="prikaziZnak('skorpija')">Škorpija</a>
+          <a href="#horoskop" onclick="prikaziZnak('strelac')">Strelac</a>
+          <a href="#horoskop" onclick="prikaziZnak('jarac')">Jarac</a>
+          <a href="#horoskop" onclick="prikaziZnak('vodolija')">Vodolija</a>
+          <a href="#horoskop" onclick="prikaziZnak('ribe')">Ribe</a>
+        </div>
+        </div>
       <a href="#zanimljivosti">Zanimljivosti</a>
       <a href="#privatna-citanja">Privatna Čitanja</a>
     </nav>
@@ -164,19 +213,19 @@
     <section id="horoskop">
       <h2>Mesečni Horoskop</h2>
       <div class="grid-3">
-        <div class="card-item"><h3>Ovan</h3><div id="horoskop-ovan"><p>Učitavanje...</p></div></div>
-        <div class="card-item"><h3>Bik</h3><div id="horoskop-bik"><p>Učitavanje...</p></div></div>
-        <div class="card-item"><h3>Blizanci</h3><div id="horoskop-blizanci"><p>Učitavanje...</p></div></div>
-        <div class="card-item"><h3>Rak</h3><div id="horoskop-rak"><p>Učitavanje...</p></div></div>
-        <div class="card-item"><h3>Lav</h3><div id="horoskop-lav"><p>Učitavanje...</p></div></div>
-        <div class="card-item"><h3>Devica</h3><div id="horoskop-devica"><p>Učitavanje...</p></div></div>
-        <div class="card-item"><h3>Vaga</h3><div id="horoskop-vaga"><p>Učitavanje...</p></div></div>
-        <div class="card-item"><h3>Škorpija</h3><div id="horoskop-skorpija"><p>Učitavanje...</p></div></div>
-        <div class="card-item"><h3>Strelac</h3><div id="horoskop-strelac"><p>Učitavanje...</p></div></div>
-        <div class="card-item"><h3>Jarac</h3><div id="horoskop-jarac"><p>Učitavanje...</p></div></div>
-        <div class="card-item"><h3>Vodolija</h3><div id="horoskop-vodolija"><p>Učitavanje...</p></div></div>
-        <div class="card-item"><h3>Ribe</h3><div id="horoskop-ribe"><p>Učitavanje...</p></div></div>
-      </div>
+  <div class="card-item horoskop-kartica" id="kartica-ovan"><h3>Ovan</h3><div id="horoskop-ovan"><p>Učitavanje...</p></div></div>
+  <div class="card-item horoskop-kartica" id="kartica-bik"><h3>Bik</h3><div id="horoskop-bik"><p>Učitavanje...</p></div></div>
+  <div class="card-item horoskop-kartica" id="kartica-blizanci"><h3>Blizanci</h3><div id="horoskop-blizanci"><p>Učitavanje...</p></div></div>
+  <div class="card-item horoskop-kartica" id="kartica-rak"><h3>Rak</h3><div id="horoskop-rak"><p>Učitavanje...</p></div></div>
+  <div class="card-item horoskop-kartica" id="kartica-lav"><h3>Lav</h3><div id="horoskop-lav"><p>Učitavanje...</p></div></div>
+  <div class="card-item horoskop-kartica" id="kartica-devica"><h3>Devica</h3><div id="horoskop-devica"><p>Učitavanje...</p></div></div>
+  <div class="card-item horoskop-kartica" id="kartica-vaga"><h3>Vaga</h3><div id="horoskop-vaga"><p>Učitavanje...</p></div></div>
+  <div class="card-item horoskop-kartica" id="kartica-skorpija"><h3>Škorpija</h3><div id="horoskop-skorpija"><p>Učitavanje...</p></div></div>
+  <div class="card-item horoskop-kartica" id="kartica-strelac"><h3>Strelac</h3><div id="horoskop-strelac"><p>Učitavanje...</p></div></div>
+  <div class="card-item horoskop-kartica" id="kartica-jarac"><h3>Jarac</h3><div id="horoskop-jarac"><p>Učitavanje...</p></div></div>
+  <div class="card-item horoskop-kartica" id="kartica-vodolija"><h3>Vodolija</h3><div id="horoskop-vodolija"><p>Učitavanje...</p></div></div>
+  <div class="card-item horoskop-kartica" id="kartica-ribe"><h3>Ribe</h3><div id="horoskop-ribe"><p>Učitavanje...</p></div></div>
+</div>
     </section>
 
     <!-- Sekcija: Zanimljivosti -->
@@ -336,7 +385,7 @@
         });
       }
     } catch (e) { console.error(e); }
-
+prikaziZnak('ovan'); // Automatski prikazuje samo Ovna kada se stranica učita
     // 2. Privatna Čitanja
     try {
       const res = await fetch('/content/privatna-citanja.json');
@@ -378,6 +427,16 @@
   }
 
   document.addEventListener("DOMContentLoaded", ucitajSveSekcije);
+  function prikaziZnak(znakId) {
+  // Prikaži sve kartice ako se traži
+  const sveKartice = document.querySelectorAll('.horoskop-kartica');
+  sveKartice.forEach(k => k.style.display = 'none');
+
+  const izabrana = document.getElementById(`kartica-${znakId}`);
+  if (izabrana) {
+    izabrana.style.display = 'block';
+  }
+}
 </script>
 </body>
 </html>
