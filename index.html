@@ -452,7 +452,7 @@ prikaziZnak('ovan'); // Automatski prikazuje samo Ovna kada se stranica učita
   }
 
   document.addEventListener("DOMContentLoaded", ucitajSveSekcije);
-  function prikaziZnak(znakId) {
+ function prikaziZnak(znakId) {
   const sveKartice = document.querySelectorAll('.horoskop-kartica');
   sveKartice.forEach(k => k.style.display = 'none');
   const izabrana = document.getElementById(`kartica-${znakId}`);
@@ -473,5 +473,11 @@ function toggleAudio() {
     btn.innerHTML = "🔇 Muzika Utišana";
   }
 }
+
+// Pokretanje učitavanja pri punjenju stranice
+ucitajSveSekcije();
+</script>
+</body>
+</html>
 </script>
 </html>
