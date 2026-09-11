@@ -372,87 +372,105 @@
     display.innerText = '';
     display.style.backgroundImage = `url('${card.image}')`;
   }
-
+// Učitavanje svih sekcija iz CMS-a
+async function ucitajSveSekcije() {
   // 0. Učitavanje izgleda (pozadina i muzika)
-try {
-  const resIzgled = await fetch('/content/izgled.json');
-  if (resIzgled.ok) {
-    const dataIzgled = await resIzgled.json();
-    
-    // Pozadinska slika
-    if (dataIzgled.pozadina) {
-      document.body.style.backgroundImage = `url('${dataIzgled.pozadina}')`;
-      document.body.style.backgroundSize = 'cover';
-      document.body.style.backgroundPosition = 'center';
-      document.body.style.backgroundAttachment = 'fixed';
-    }
+  try {
+    const resIzgled = await fetch('/content/izgled.json');
+    if (resIzgled.ok) {
+      const dataIzgled = await resIzgled.json();
+      
+      // Pozadinska slika
+      if (dataIzgled.pozadina) {
+        document.body.style.backgroundImage = `url('${dataIzgled.pozadina}')`;
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
+        document.body.style.backgroundAttachment = 'fixed';
+      }
 
-    // Pozadinska muzika
-    if (dataIzgled.muzika) {
-      const audio = document.getElementById('bg-audio');
-      const btn = document.getElementById('audio-btn');
-      audio.src = dataIzgled.muzika;
-      btn.style.display = 'inline-block'; // Prikaži dugme samo ako postoji muzika
+      // Pozadinska muzika
+      if (dataIzgled.muzika) {
+        const audio = document.getElementById('bg-audio');
+        const btn = document.getElementById('audio-btn');
+        audio.src = dataIzgled.muzika;
+        btn.style.display = 'inline-block';
+      }
     }
+  } catch (e) {
+    console.error("Greška pri učitavanju izgleda:", e);
+  // 0. Učitavanje izgleda (pozadina i muzika)
+  try {
+    const resIzgled = await fetch('/content/izgled.json');
+    if (resIzgled.ok) {
+      const dataIzgled = await resIzgled.json();
+      
+      // Pozadinska slika
+      if (dataIzgled.pozadina) {
+        document.body.style.backgroundImage = `url('${dataIzgled.pozadina}')`;
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
+        document.body.style.backgroundAttachment = 'fixed';
+      }
+
+      // Pozadinska muzika
+      if (dataIzgled.muzika) {
+        const audio = document.getElementById('bg-audio');
+        const btn = document.getElementById('audio-btn');
+        audio.src = dataIzgled.muzika;
+        btn.style.display = 'inline-block';
+      }
+    }
+  } catch (e) {
+    console.error("Greška pri učitavanju izgleda:", e);
   }
-} catch (e) {
-  console.error("Greška pri učitavanju izgleda:", e);
+
+  // 1. Horoskop
+  const znaci = ['ovan', 'bik', 'blizanci', 'rak', 'lav', 'devica', 'vaga', 'skorpija', 'strelac', 'jarac', 'vodolija', 'ribe'];
+  znaci.forEach(async (znak) => {
+    try {
+      const res = await fetch(`/content/horoskop/${znak}.json`);
+      if (res.ok) {
+        const data = await res.json();
+        const el = document.getElementById(`horoskop-${znak}`);
+        if (el) el.innerHTML = marked.parse(data.tekst || '');
+      }
+    } catch (e) {}
+  });
+
+  // 2. Zanimljivosti
+  try {
+    const resZ = await fetch('/content/zanimljivosti.json');
+    if (resZ.ok) {
+      const zanimljivosti = await resZ.json();
+      const kontejner = document.getElementById('sekcija-zanimljivosti');
+      if (kontejner && Array.isArray(zanimljivosti)) {
+        kontejner.innerHTML = zanimljivosti.map(z => `
+          <div class="card-item">
+            <h3>${z.naslov || ''}</h3>
+            <div>${marked.parse(z.tekst || '')}</div>
+          </div>
+        `).join('');
+      }
+    }
+  } catch (e) {}
+
+  // 3. Privatna Čitanja
+  try {
+    const resP = await fetch('/content/privatna-citanja.json');
+    if (resP.ok) {
+      const dataP = await resP.json();
+      if (dataP.naslov) document.getElementById('privatna-citanja-naslov').innerText = dataP.naslov;
+      if (dataP.opis) document.getElementById('privatna-citanja-opis').innerHTML = marked.parse(dataP.opis);
+      if (dataP.email) {
+        const emailEl = document.getElementById('privatna-citanja-email');
+        emailEl.innerText = dataP.email;
+        emailEl.href = `mailto:${dataP.email}`;
+      }
+    }
+  } catch (e) {}
 }
-    // 1. Horoskop
-    try {
-      const res = await fetch('/content/horoskop/mesečni.json');
-      if (res.ok) {
-        const data = await res.json();
-        const znakovi = ['ovan', 'bik', 'blizanci', 'rak', 'lav', 'devica', 'vaga', 'skorpija', 'strelac', 'jarac', 'vodolija', 'ribe'];
-        znakovi.forEach(z => {
-          const el = document.getElementById(`horoskop-${z}`);
-          if (el && data[z]) el.innerHTML = marked.parse(data[z]);
-        });
-      }
-    } catch (e) { console.error(e); }
-prikaziZnak('ovan'); // Automatski prikazuje samo Ovna kada se stranica učita
-    // 2. Privatna Čitanja
-    try {
-      const res = await fetch('/content/privatna-citanja.json');
-      if (res.ok) {
-        const data = await res.json();
-        if (data.title) document.getElementById('privatna-citanja-naslov').innerText = data.title;
-        if (data.description) document.getElementById('privatna-citanja-opis').innerHTML = marked.parse(data.description);
-        if (data.email) {
-          const emailEl = document.getElementById('privatna-citanja-email');
-          emailEl.innerText = data.email;
-          emailEl.href = `mailto:${data.email}`;
-        }
-      }
-    } catch (e) { console.error(e); }
 
-    // 3. Zanimljivosti
-    try {
-      const res = await fetch('https://api.github.com/repos/missdiablo69/mojadoza3/contents/content/zanimljivosti');
-      if (res.ok) {
-        const files = await res.json();
-        const container = document.getElementById('sekcija-zanimljivosti');
-        if (container && files.length > 0) {
-          container.innerHTML = '';
-          for (const f of files) {
-            if (f.name.endsWith('.md')) {
-              const r = await fetch(f.download_url);
-              const txt = await r.text();
-              const parts = txt.split('---');
-              if (parts.length >= 3) {
-                const titleMatch = parts[1].match(/title:\  *"?([^"\r\n]+)"?/i);
-                const title = titleMatch ? titleMatch[1] : 'Tekst';
-                container.innerHTML += `<div class="card-item"><h3>${title}</h3><div>${marked.parse(parts.slice(2).join('---'))}</div></div>`;
-              }
-            }
-          }
-        }
-      }
-    } catch (e) { console.error(e); }
-  }
-
-  document.addEventListener("DOMContentLoaded", ucitajSveSekcije);
- function prikaziZnak(znakId) {
+function prikaziZnak(znakId) {
   const sveKartice = document.querySelectorAll('.horoskop-kartica');
   sveKartice.forEach(k => k.style.display = 'none');
   const izabrana = document.getElementById(`kartica-${znakId}`);
@@ -474,10 +492,8 @@ function toggleAudio() {
   }
 }
 
-// Pokretanje učitavanja pri punjenju stranice
+// Pokretanje ucitavanja sadržaja
 ucitajSveSekcije();
 </script>
 </body>
-</html>
-</script>
 </html>
