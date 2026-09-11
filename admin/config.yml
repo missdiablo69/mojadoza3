@@ -17,25 +17,25 @@ collections:
           - { label: "Pozadinska Muzika (MP3)", name: "muzika", widget: "file", required: false }
 
   # 2. MESEČNI HOROSKOP
-  - name: "mesecni_horoskop"
-    label: "Mesečni Horoskop (Svi Znakovi)"
-    files:
-      - name: "svi_znakovi"
-        label: "Uredi Mesečni Horoskop"
-        file: "content/horoskop/mesečni.json"
-        fields:
-          - { label: "Ovan", name: "ovan", widget: "markdown" }
-          - { label: "Bik", name: "bik", widget: "markdown" }
-          - { label: "Blizanci", name: "blizanci", widget: "markdown" }
-          - { label: "Rak", name: "rak", widget: "markdown" }
-          - { label: "Lav", name: "lav", widget: "markdown" }
-          - { label: "Devica", name: "devica", widget: "markdown" }
-          - { label: "Vaga", name: "vaga", widget: "markdown" }
-          - { label: "Škorpija", name: "skorpija", widget: "markdown" }
-          - { label: "Strelac", name: "strelac", widget: "markdown" }
-          - { label: "Jarac", name: "jarac", widget: "markdown" }
-          - { label: "Vodolija", name: "vodolija", widget: "markdown" }
-          - { label: "Ribe", name: "ribe", widget: "markdown" }
+  - name: "horoskop"
+    label: "Mesečni Horoskop"
+    folder: "content/horoskop"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-horoskop"
+    fields:
+      - { label: "Naslov", name: "title", widget: "string" }
+      - { label: "Ovan", name: "ovan", widget: "markdown", required: false }
+      - { label: "Bik", name: "bik", widget: "markdown", required: false }
+      - { label: "Blizanci", name: "blizanci", widget: "markdown", required: false }
+      - { label: "Rak", name: "rak", widget: "markdown", required: false }
+      - { label: "Lav", name: "lav", widget: "markdown", required: false }
+      - { label: "Devica", name: "devica", widget: "markdown", required: false }
+      - { label: "Vaga", name: "vaga", widget: "markdown", required: false }
+      - { label: "Škorpija", name: "skorpija", widget: "markdown", required: false }
+      - { label: "Strelac", name: "strelac", widget: "markdown", required: false }
+      - { label: "Jarac", name: "jarac", widget: "markdown", required: false }
+      - { label: "Vodolija", name: "vodolija", widget: "markdown", required: false }
+      - { label: "Ribe", name: "ribe", widget: "markdown", required: false }
 
   # 3. ZANIMLJIVOSTI & TEKSTOVI
   - name: "zanimljivosti"
