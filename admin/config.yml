@@ -6,15 +6,15 @@ media_folder: "images/uploads"
 public_folder: "/images/uploads"
 
 collections:
-  # 1. PODEŠAVANJA SAJTA I POZADINA
   - name: "postavke"
-    label: "Podešavanja Sajta"
+    label: "Postavke Sajta"
     files:
-      - name: "izgled"
-        label: "Pozadina Sajta"
-        file: "content/izgled.json"
+      - file: "content/izgled.json"
+        label: "Izgled Sajta"
+        name: "izgled"
         fields:
           - { label: "Pozadinska Slika", name: "pozadina", widget: "image", required: false }
+          - { label: "Pozadinska Muzika (MP3)", name: "muzika", widget: "file", required: false }
 
   # 2. MESEČNI HOROSKOP
   - name: "mesecni_horoskop"
