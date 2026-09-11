@@ -356,16 +356,17 @@
       } catch (e) {}
 
       // Mesečni Horoskop
-      const znaci = ['ovan', 'bik', 'blizanci', 'rak', 'lav', 'devica', 'vaga', 'skorpija', 'strelac', 'jarac', 'vodolija', 'ribe'];
-      for (const znak of znaci) {
-        try {
-          const res = await fetch(`./content/horoskop/${znak}.json`);
-          if (res.ok) {
-            const data = await res.json();
-            const el = document.getElementById(`horoskop-${znak}`);
-            if (el) el.innerHTML = marked.parse(data.tekst || data.sadrzaj || '');
-          }
-        } catch (e) {}
+  const znaci = ['ovan', 'bik', 'blizanci', 'rak', 'lav', 'devica', 'vaga', 'skorpija', 'strelac', 'jarac', 'vodolija', 'ribe'];
+  for (const znak of znaci) {
+    try {
+      const res = await fetch(`./content/horoskop/${znak}.json`);
+      if (res.ok) {
+        const data = await res.json();
+        const el = document.getElementById(`horoskop-${znak}`);
+        if (el) el.innerHTML = marked.parse(data.tekst || data.sadrzaj || '');
+      }
+    } catch (e) {}
+  }
       }
 
       // Zanimljivosti
