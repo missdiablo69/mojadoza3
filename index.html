@@ -398,7 +398,7 @@ async function ucitajSveSekcije() {
     console.error("Greška pri učitavanju izgleda:", e);
   }
 
-  // 1. Horoskop (ispravljena petlja za učitavanje teksta)
+  // 1. Mesečni Horoskop
   const znaci = ['ovan', 'bik', 'blizanci', 'rak', 'lav', 'devica', 'vaga', 'skorpija', 'strelac', 'jarac', 'vodolija', 'ribe'];
   for (const znak of znaci) {
     try {
@@ -408,7 +408,9 @@ async function ucitajSveSekcije() {
         const el = document.getElementById(`horoskop-${znak}`);
         if (el) el.innerHTML = marked.parse(data.tekst || data.sadrzaj || '');
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error(`Greška za ${znak}:`, e);
+    }
   }
 
   // 2. Zanimljivosti
@@ -426,7 +428,9 @@ async function ucitajSveSekcije() {
         `).join('');
       }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error("Greška pri učitavanju zanimljivosti:", e);
+  }
 
   // 3. Privatna Čitanja
   try {
@@ -441,8 +445,10 @@ async function ucitajSveSekcije() {
         emailEl.href = `mailto:${dataP.email}`;
       }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error("Greška pri učitavanju privatnih čitanja:", e);
   }
+}
 
 function prikaziZnak(znakId) {
   const sveKartice = document.querySelectorAll('.horoskop-kartica');
@@ -466,9 +472,8 @@ function toggleAudio() {
   }
 }
 
-// Pokretanje učitavanja pri otvaranju sajta
+// Pokretanje učitavanja pri otvaranju stranice
 ucitajSveSekcije();
 </script>
 </body>
 </html>
-}
