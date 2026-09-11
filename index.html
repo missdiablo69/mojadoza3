@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moja Doza - Tarot & Mesečni Horoskop</title>
+    <style>
+        :root {
+            --bg-color: #0d0a1a;
+            --card-bg: #1a1530;
+            --accent-color: #d4af37;
+            --text-color: #f0e6ff;
+            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-main);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        header {
+            background: rgba(26, 21, 48, 0.9);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid var(--accent-color);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        header h1 {
+            margin: 0;
+            color: var(--accent-color);
+            letter-spacing: 2px;
+        }
+
+        nav a {
+            color: var(--text-color);
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        nav a:hover { color: var(--accent-color); }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        section {
+            margin-bottom: 60px;
+            padding-top: 20px;
+        }
+
+        h2 {
+            color: var(--accent-color);
+            border-bottom: 1px solid var(--accent-color);
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        /* Tarot Sekcija */
+        .tarot-box {
+            background: var(--card-bg);
+            border: 1px solid var(--accent-color);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+        }
+
+        .card-display {
+            width: 200px;
+            height: 340px;
+            margin: 20px auto;
+            border: 2px solid var(--accent-color);
+            border-radius: 10px;
+            background: #251d42;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--accent-color);
+            background-size: cover;
+            background-position: center;
+        }
+
+        button.btn-draw {
+            background: var(--accent-color);
+            color: #000;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+        }
+
+        button.btn-draw:hover {
+            transform: scale(1.05);
+            background: #f3cf55;
+        }
+
+        /* Grid Layouts */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card-item {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #332a52;
+        }
+
+        /* Disclaimer & Footer */
+        footer {
+            background: #06040b;
+            padding: 30px 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            border-top: 1px solid #251d42;
+        }
+
+        .disclaimer-box {
+            background: #231b10;
+            border: 1px solid #8a6d1c;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>MOJA DOZA</h1>
+        <nav>
+            <a href="#karta-dana">Karta Dana</a>
+            <a href="#horoskop">Mesečni Horoskop</a>
+            <a href="#zanimljivosti">Zanimljivosti</a>
+            <a href="#privatna-citanja">Privatna Čitanja</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        
+        <!-- Disclaimer Banner -->
+        <div class="disclaimer-box">
+            <strong>VAŽNO OBAVEŠTENJE (DISCLAIMER):</strong> Sadržaj na sajtu <em>www.mojadoza.com</em>, uključujući tumačenje tarot karata i horoskopa, namenjen je isključivo u zabavne i informativne svrhe. Tumačenja ne predstavljaju profesionalne savete (medicinske, pravne, finansijske ili psihološke).
+        </div>
+
+        <!-- Sekcija: Karta Dana -->
+        <section id="karta-dana">
+            <h2>Karta Dana</h2>
+            <div class="tarot-box">
+                <p>Otkrijte šta vam zvezde i simobili poručuju danas. Opustite se i kliknite na dugme ispod.</p>
+                <div class="card-display" id="cardDisplay">Z poleđina karata</div>
+                <h3 id="cardName" style="color: var(--accent-color);"></h3>
+                <p id="cardMeaning"></p>
+                <button class="btn-draw" onclick="drawCard()">Izvuci Kartu Dana</button>
+            </div>
+        </section>
+
+        <!-- Sekcija: Mesečni Horoskop -->
+        <section id="horoskop">
+            <h2>Mesečni Horoskop</h2>
+            <div class="grid-3" id="horoscopeContainer">
+                <div class="card-item">
+                    <h3>Ovan</h3>
+                    <p>Mesečna prognoza za Ovna biće dodata uskoro putem Admin Panela.</p>
+                </div>
+                <div class="card-item">
+                    <h3>Bik</h3>
+                    <p>Mesečna prognoza za Bika biće dodata uskoro putem Admin Panela.</p>
+                </div>
+                <div class="card-item">
+                    <h3>Blizanci</h3>
+                    <p>Mesečna prognoza za Blizance biće dodata uskoro putem Admin Panela.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sekcija: Zanimljivosti -->
+        <section id="zanimljivosti">
+            <h2>Zanimljivosti & Tekstovi</h2>
+            <div class="grid-3" id="articlesContainer">
+                <div class="card-item">
+                    <h3>Istorija Tarot Karata</h3>
+                    <p>Kako su tarot karte od dvorske igre postale jedan od najpopularnijih simbola za samospoznaju...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sekcija: Privatna Čitanja -->
+        <section id="privatna-citanja">
+            <h2>Privatna Čitanja</h2>
+            <div class="tarot-box">
+                <h3>Zakažite Vaše Lično Čitanje</h3>
+                <p>Za detaljnije analize, lična pitanja i individualne tarot sesije, kontaktirajte me direktno.</p>
+                <p><strong>Kontakt email:</strong> kontakt@mojadoza.com</p>
+                <p><em>(Uskoro: Forma za direktno zakazivanje termina)</em></p>
+            </div>
+        </section>
+
+        <!-- Sekcija: Privacy Policy -->
+        <section id="privacy-policy">
+            <h2>Politika Privatnosti (Privacy Policy)</h2>
+            <div style="font-size: 0.9rem; color: #ccc;">
+                <p>Sajt <strong>mojadoza.com</strong> poštuje vašu privatnost. Ne prikupljamo lične podatke posetilaca bez vaše izričite saglasnosti.</p>
+                <p>Ako nas kontaktirate putem email-a za privatna čitanja, vaše informacije će biti korišćene isključivo u svrhu komunikacije i neće biti deljene sa trećim licima.</p>
+                <p>Sajt može koristiti standardne kolačiće (cookies) radi boljeg korisničkog iskustva i analitike poseta.</p>
+            </div>
+        </section>
+
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Mojadoza.com - Sva prava zadržana. | Zabavni sadržaj.</p>
+    </footer>
+
+    <script>
+        // Baza od 78 Tarot Karata (22 Velika ArKana + 56 Mala Arkana)
+        const tarotDeck = [
+            // Velika Arkana
+            { name: "Luda (The Fool)", meaning: "Novi počeci, nevinost, spontanost, slobodouman duh.", img: "fool.jpg" },
+            { name: "Mag (The Magician)", meaning: "Manifestacija, resursi, snaga volje, veština.", img: "magician.jpg" },
+            { name: "Visoka Sveštenica (The High Priestess)", meaning: "Intuicija, podsvest, unutrašnji glas, tajne.", img: "priestess.jpg" },
+            { name: "Carica (The Empress)", meaning: "Plodnost, obilje, priroda, kreativnost, majčinska energija.", img: "empress.jpg" },
+            { name: "Car (The Emperor)", meaning: "Autoritet, struktura, stabilnost, kontrola.", img: "emperor.jpg" },
+            { name: "Sveštenik (The Hierophant)", meaning: "Tradicija, duhovno vođstvo, verovanja, obrazovanje.", img: "hierophant.jpg" },
+            { name: "Ljubavnici (The Lovers)", meaning: "Ljubav, harmonija, veze, izbori i vrednosti.", img: "lovers.jpg" },
+            { name: "Kola (The Chariot)", meaning: "Kontrola, pobeda, odlučnost, fokus na cilj.", img: "chariot.jpg" },
+            { name: "Snaga (Strength)", meaning: "Hrabrost, strpljenje, saosećanje, unutrašnja snaga.", img: "strength.jpg" },
+            { name: "Pustinjak (The Hermit)", meaning: "Samospoznaja, traženje istine, unutrašnji mir, povlačenje.", img: "hermit.jpg" },
+            { name: "Točak Sreće (Wheel of Fortune)", meaning: "Ciklusi, sudbina, promene, nepredvidivost.", img: "wheel.jpg" },
+            { name: "Pravda (Justice)", meaning: "Istina, pravednost, uzrok i posledica, zakoni.", img: "justice.jpg" },
+            { name: "Obešeni Čovek (The Hanged Man)", meaning: "Neznatne žrtve, nova perspektiva, pauza, prepuštanje.", img: "hanged.jpg" },
+            { name: "Smrt (Death)", meaning: "Kraj jednog ciklusa, transformacija, novi početak.", img: "death.jpg" },
+            { name: "Umerenost (Temperance)", meaning: "Balans, umerenost, mir, ravnoteža.", img: "temperance.jpg" },
+            { name: "Đavo (The Devil)", meaning: "Vezanost, materijalizam, iluzije, loše navike.", img: "devil.jpg" },
+            { name: "Kula (The Tower)", meaning: "Iznenadna promena, buđenje, rušenje starih iluzija.", img: "tower.jpg" },
+            { name: "Zvezda (The Star)", meaning: "Nada, verovanje, inspiracija, obnova energije.", img: "star.jpg" },
+            { name: "Mesec (The Moon)", meaning: "Iluzije, strahovi, intuicija, nesigurnost.", img: "moon.jpg" },
+            { name: "Sunce (The Sun)", meaning: "Radost, uspeh, pozitivnost, vitalnost.", img: "sun.jpg" },
+            { name: "Sud (Judgement)", meaning: "Evaluacija, poziv, oproštaj, donošenje važnih odluka.", img: "judgement.jpg" },
+            { name: "Svet (The World)", meaning: "Završetak, ispunjenje, uspeh, integracija.", img: "world.jpg" }
+        ];
+
+        // Automatsko generisanje preostalih 56 karata Male Arkane (Štapovi, Pehari, Mačevi, Pentakli)
+        const suits = [
+            { name: "Štapova", desc: "energiju, strast i akciju" },
+            { name: "Pehara", desc: "emocije, ljubav i odnose" },
+            { name: "Mačeva", desc: "intelekt, misli i izazove" },
+            { name: "Pentakla", desc: "financije, posao i materijalni svet" }
+        ];
+        const ranks = ["As", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Paž", "Vitez", "Kraljica", "Kralj"];
+
+        suits.forEach(suit => {
+            ranks.forEach(rank => {
+                tarotDeck.push({
+                    name: `${rank} ${suit.name}`,
+                    meaning: `Karta ${rank} ${suit.name} simbolizuje ${suit.desc} u kontekstu položaja broja ${rank}.`,
+                    img: "default_card.jpg"
+                });
+            });
+        });
+
+        // Funkcija za nasumično izvlačenje karte dana
+        function drawCard() {
+            const randomIndex = Math.floor(Math.random() * tarotDeck.length);
+            const card = tarotDeck[randomIndex];
+            
+            document.getElementById('cardName').innerText = card.name;
+            document.getElementById('cardMeaning').innerText = card.meaning;
+            document.getElementById('cardDisplay').innerText = card.name;
+        }
+    </script>
+</body>
+</html>

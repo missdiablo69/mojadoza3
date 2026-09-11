@@ -1,0 +1,19 @@
+backend:
+  name: github
+  repo: missdiablo69/mojadoza
+  branch: main
+
+media_folder: "images/uploads"
+public_folder: "/images/uploads"
+
+collections:
+  - name: "horoskop"
+    label: "Dnevni Sadržaj"
+    folder: "content/horoskop"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { label: "Naslov", name: "title", widget: "string" }
+      - { label: "Datum", name: "date", widget: "datetime" }
+      - { label: "Zodijak Znak", name: "znak", widget: "select", options: ["Ovan", "Bik", "Blizanci", "Rak", "Lav", "Devica", "Vaga", "Škorpija", "Strelac", "Jarac", "Vodolija", "Ribe"] }
+      - { label: "Tekst Poruke", name: "body", widget: "markdown" }
