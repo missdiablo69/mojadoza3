@@ -6,13 +6,46 @@ media_folder: "images/uploads"
 public_folder: "/images/uploads"
 
 collections:
-  - name: "horoskop"
-    label: "Dnevni Sadržaj"
-    folder: "content/horoskop"
+  # 1. SEKCIJA: MESEČNI HOROSKOP (Posebna polja za svih 12 znakova)
+  - name: "mesecni_horoskop"
+    label: "Mesečni Horoskop (Svi Znakovi)"
+    files:
+      - name: "svi_znakovi"
+        label: "Uredi Mesečni Horoskop"
+        file: "content/horoskop/mesečni.json"
+        fields:
+          - { label: "Ovan", name: "ovan", widget: "markdown" }
+          - { label: "Bik", name: "bik", widget: "markdown" }
+          - { label: "Blizanci", name: "blizanci", widget: "markdown" }
+          - { label: "Rak", name: "rak", widget: "markdown" }
+          - { label: "Lav", name: "lav", widget: "markdown" }
+          - { label: "Devica", name: "devica", widget: "markdown" }
+          - { label: "Vaga", name: "vaga", widget: "markdown" }
+          - { label: "Škorpija", name: "skorpija", widget: "markdown" }
+          - { label: "Strelac", name: "strelac", widget: "markdown" }
+          - { label: "Jarac", name: "jarac", widget: "markdown" }
+          - { label: "Vodolija", name: "vodolija", widget: "markdown" }
+          - { label: "Ribe", name: "ribe", widget: "markdown" }
+
+  # 2. SEKCIJA: ZANIMLJIVOSTI & TEKSTOVI
+  - name: "zanimljivosti"
+    label: "Zanimljivosti & Tekstovi"
+    folder: "content/zanimljivosti"
     create: true
-    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    slug: "{{slug}}"
     fields:
-      - { label: "Naslov", name: "title", widget: "string" }
-      - { label: "Datum", name: "date", widget: "datetime" }
-      - { label: "Zodijak Znak", name: "znak", widget: "select", options: ["Ovan", "Bik", "Blizanci", "Rak", "Lav", "Devica", "Vaga", "Škorpija", "Strelac", "Jarac", "Vodolija", "Ribe"] }
-      - { label: "Tekst Poruke", name: "body", widget: "markdown" }
+      - { label: "Naslov Teksta", name: "title", widget: "string" }
+      - { label: "Kratak Opis", name: "description", widget: "string" }
+      - { label: "Sadržaj Teksta", name: "body", widget: "markdown" }
+
+  # 3. SEKCIJA: PRIVATNA ČITANJA
+  - name: "privatna_citanja"
+    label: "Privatna Čitanja"
+    files:
+      - name: "info"
+        label: "Uredi Informacije za Čitanja"
+        file: "content/privatna-citanja.json"
+        fields:
+          - { label: "Naslov Sekcije", name: "title", widget: "string", default: "Zakažite Vaše Lično Čitanje" }
+          - { label: "Opis / Tekst", name: "description", widget: "markdown" }
+          - { label: "Kontakt Email", name: "email", widget: "string", default: "kontakt@mojadoza.com" }
