@@ -652,12 +652,16 @@
       if (!kontejner) return;
 
       try {
-        // Prema config.yml, Zanimljivosti nisu jedan JSON fajl nego folder:
-        // content/zanimljivosti/*.md
+        // Zanimljivosti se čitaju iz content/zanimljivosti/*.md ili *.json.
+        // Na početku se prikazuju SAMO NASLOVI iz back office polja NASLOV/TITLE.
+        // Cijeli tekst se otvara tek kada korisnik klikne na određeni naslov.
         const files = await fetchGitHubFolder('content/zanimljivosti');
         const cmsFiles = files
           .filter(f => f.type === 'file' && /\.(md|markdown|json)$/i.test(f.name))
-          .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+          .sort((a, b) => a.name.localeCompare(b.name, undefined, {
+            numeric: true,
+            sensitivity: 'base'
+          }));
 
         if (!cmsFiles.length) {
           kontejner.innerHTML = '<p>Trenutno nema objavljenih tekstova.</p>';
@@ -665,10 +669,14 @@
         }
 
         const posts = [];
+
         for (const file of cmsFiles) {
           try {
             const raw = await fetchText(file.download_url || file.html_url);
-            const data = /\.json$/i.test(file.name) ? JSON.parse(raw) : parseCmsMarkdown(raw);
+            const data = /\.json$/i.test(file.name)
+              ? JSON.parse(raw)
+              : parseCmsMarkdown(raw);
+
             posts.push(data);
           } catch (fileError) {
             console.warn(`Nije moguće učitati ${file.name}:`, fileError);
@@ -680,36 +688,77 @@
           return;
         }
 
-        kontejner.innerHTML = posts.map(z => {
-          // Tačno odgovara config.yml-u: title + description + body.
-          const naslov = z.title ?? z.naslov ?? '';
-          const opis = z.description ?? z.opis ?? '';
-          const body = z.body ?? z.tekst ?? z.content ?? '';
+        // Lista naslova — sadržaj se NE prikazuje dok korisnik ne klikne naslov.
+        kontejner.className = 'zanimljivosti-lista';
+        kontejner.innerHTML = '';
+
+        posts.forEach((z) => {
+          const naslov = normalizujTekst(z.title ?? z.naslov ?? '').trim();
+          const opis = normalizujTekst(z.description ?? z.opis ?? '').trim();
+          const body = normalizujTekst(z.body ?? z.tekst ?? z.content ?? '').trim();
           const tekst = body || opis;
 
-          const safeTitle = String(naslov)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
+          const item = document.createElement('div');
+          item.className = 'tekst-item';
 
-          const renderedText =
-            typeof marked !== 'undefined' && typeof marked.parse === 'function'
-              ? marked.parse(String(tekst))
-              : String(tekst)
-                  .replace(/&/g, '&amp;')
-                  .replace(/</g, '&lt;')
-                  .replace(/>/g, '&gt;')
-                  .replace(/\n/g, '<br>');
+          const dugme = document.createElement('button');
+          dugme.type = 'button';
+          dugme.className = 'tekst-naslov-btn';
+          dugme.setAttribute('aria-expanded', 'false');
 
-          return `
-            <div class="card-item">
-              <h3>${safeTitle}</h3>
-              ${opis && !body ? `<p>${String(opis).replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>` : ''}
-              <div>${renderedText}</div>
-            </div>
-          `;
-        }).join('');
+          const naslovSpan = document.createElement('span');
+          naslovSpan.textContent = naslov || 'Bez naslova';
+
+          const strelicaSpan = document.createElement('span');
+          strelicaSpan.className = 'strelica';
+          strelicaSpan.textContent = '▼';
+          strelicaSpan.setAttribute('aria-hidden', 'true');
+
+          dugme.appendChild(naslovSpan);
+          dugme.appendChild(strelicaSpan);
+
+          const sadrzaj = document.createElement('div');
+          sadrzaj.className = 'tekst-sadrzaj';
+          sadrzaj.setAttribute('aria-hidden', 'true');
+
+          if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+            sadrzaj.innerHTML = sanitizujHtml(marked.parse(tekst));
+          } else {
+            sadrzaj.textContent = tekst;
+          }
+
+          // Klik na NASLOV otvara/zatvara samo taj tekst unutar sekcije.
+          dugme.addEventListener('click', () => {
+            const otvoren = item.classList.contains('otvoren');
+
+            // Zatvori ostale tekstove.
+            kontejner.querySelectorAll('.tekst-item.otvoren').forEach(other => {
+              other.classList.remove('otvoren');
+
+              const otherButton = other.querySelector('.tekst-naslov-btn');
+              const otherArrow = other.querySelector('.strelica');
+              const otherContent = other.querySelector('.tekst-sadrzaj');
+
+              if (otherButton) otherButton.setAttribute('aria-expanded', 'false');
+              if (otherArrow) otherArrow.textContent = '▼';
+              if (otherContent) otherContent.setAttribute('aria-hidden', 'true');
+            });
+
+            // Ako nije bio otvoren, otvori ga.
+            if (!otvoren) {
+              item.classList.add('otvoren');
+              dugme.setAttribute('aria-expanded', 'true');
+              strelicaSpan.textContent = '▲';
+              sadrzaj.setAttribute('aria-hidden', 'false');
+            }
+          });
+
+          item.appendChild(dugme);
+          item.appendChild(sadrzaj);
+          kontejner.appendChild(item);
+        });
+
+        zastitiLinkove(kontejner);
 
       } catch (e) {
         console.error('Greška pri učitavanju zanimljivosti:', e);
