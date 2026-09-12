@@ -1,5 +1,5 @@
 ---
-title: SKORPIJA
+title: SKORPIJA - Opis znaka i karaktera
 description: Opis znaka i karaktera
 ---
 Škorpija je osmi znak zodijaka, vodeni fiksni znak kojim vladaju planete Pluton i Mars.
