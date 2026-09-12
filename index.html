@@ -1,9 +1,15 @@
 <!DOCTYPE html>
 <html lang="sr">
 <head>
-  <script src="[https://unpkg.com/decap-cms](https://unpkg.com/decap-cms)@^3.0.0/dist/decap-cms.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' https: data: blob:; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://*.githubusercontent.com; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests; block-all-mixed-content">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.3.0/dist/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
   <title>Moja Doza - Tarot & Mesečni Horoskop</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -144,6 +150,66 @@
     .dropdown-content a:hover { background-color: #251d42; color: var(--accent-color); }
     .dropdown:hover .dropdown-content { display: block; }
   </style>
+
+  <script>
+    function sanitizujHtml(html) {
+      if (typeof DOMPurify === 'undefined') return String(html || '');
+      return DOMPurify.sanitize(String(html || ''), {
+        FORBID_TAGS: ['script','iframe','object','embed','form','base','meta','link'],
+        FORBID_ATTR: ['srcdoc']
+      });
+    }
+
+    function bezbjedanUrl(value, vrste) {
+      try {
+        const raw = String(value || '').trim();
+        if (!raw) return '';
+        const url = new URL(raw, window.location.href);
+        if (!['http:','https:'].includes(url.protocol)) return '';
+        if (vrste === 'image') {
+          const host = url.hostname.toLowerCase();
+          const allowed = host === window.location.hostname || host === 'upload.wikimedia.org' || host.endsWith('.githubusercontent.com');
+          if (!allowed) return '';
+        }
+        return url.href;
+      } catch (_) { return ''; }
+    }
+
+    function zastitiLinkove(root) {
+      if (!root) return;
+      root.querySelectorAll('a[href]').forEach(a => {
+        const href = (a.getAttribute('href') || '').trim().toLowerCase();
+        if (href.startsWith('javascript:') || href.startsWith('data:')) {
+          a.removeAttribute('href');
+          return;
+        }
+        try {
+          const url = new URL(a.href, window.location.href);
+          if (url.origin !== window.location.origin) {
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer nofollow';
+          }
+        } catch (_) {}
+      });
+    }
+    (function () {
+      const ua = (navigator.userAgent || '').toLowerCase();
+      const blocked = [
+        'gptbot','chatgpt-user','oai-searchbot','claudebot','anthropic-ai','perplexitybot',
+        'bytespider','ccbot','google-extended','amazonbot','meta-externalagent','facebookexternalhit',
+        'cohere-ai','youbot','sqlmap','nikto','masscan','zgrab','nmap','wpscan','nuclei','nessus',
+        'acunetix','dirbuster','gobuster','python-requests','python-urllib','curl/','wget/','scrapy',
+        'go-http-client','libwww-perl'
+      ];
+      const headless = /headlesschrome|phantomjs|selenium|playwright|puppeteer/i.test(ua);
+      const automated = navigator.webdriver === true && headless;
+      const embedded = window.top !== window.self;
+      if (blocked.some(token => ua.includes(token)) || automated || embedded) {
+        document.documentElement.innerHTML = '<head><meta charset="UTF-8"><title>Pristup nije dozvoljen</title></head><body style="font-family:Arial,sans-serif;background:#0d0a1a;color:#f0e6ff;text-align:center;padding:80px 20px"><h1>Pristup nije dozvoljen</h1><p>Ovaj pristup je blokiran sigurnosnim pravilima sajta.</p></body>';
+        window.stop();
+      }
+    })();
+  </script>
 </head>
 <body>
   <audio id="bg-audio" loop></audio>
@@ -235,84 +301,84 @@
 
   <script>
     const tarotDeck = [
-      { name: "Luda (The Fool)", meaning: "Zakorači hrabro u nepoznato i vjeruj procesu, čak i ako nemaš sve odgovore.", image: "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg" },
-      { name: "Mag (The Magician)", meaning: "Iskoristi sve alate i vještine koje već imaš da danas pokreneš svoje ideje u djelo.", image: "https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg" },
-      { name: "Visoka Sveštenica (The High Priestess)", meaning: "Utihni spoljašnju buku i poslušaj onaj tihi, unutrašnji glas intuicije.", image: "https://upload.wikimedia.org/wikipedia/commons/8/88/RWS_Tarot_02_High_Priestess.jpg" },
-      { name: "Carica (The Empress)", meaning: "Neguj sebe i druge i dozvoli sebi da uživaš u ljepoti i obilju koje te okružuje.", image: "https://upload.wikimedia.org/wikipedia/commons/d/d2/RWS_Tarot_03_Empress.jpg" },
-      { name: "Car (The Emperor)", meaning: "Postavi jasne granice, unesi strukturu u svoj dan i preuzmi punu kontrolu nad situacijom.", image: "https://upload.wikimedia.org/wikipedia/commons/c/c3/RWS_Tarot_04_Emperor.jpg" },
-      { name: "Sveštenik (The Hierophant)", meaning: "Drži se provjerenih pravila ili potraži savjet od nekoga ko ima više iskustva.", image: "https://upload.wikimedia.org/wikipedia/commons/8/8d/RWS_Tarot_05_Hierophant.jpg" },
-      { name: "Ljubavnici (The Lovers)", meaning: "Danas biraj srcem i uskladi svoje odluke sa svojim najdubljim vrijednostima.", image: "https://upload.wikimedia.org/wikipedia/commons/3/3a/TheLovers.jpg" },
-      { name: "Kola (The Chariot)", meaning: "Ostani fokusiran na cilj i snagom volje prevaziđi sve prepreke koje ti se nađu na putu.", image: "https://upload.wikimedia.org/wikipedia/commons/9/9b/RWS_Tarot_07_Chariot.jpg" },
-      { name: "Snaga (Strength)", meaning: "Riješi današnje izazove blagošću, strpljenjem i unutrašnjim mirom, a ne sirovom silom.", image: "https://upload.wikimedia.org/wikipedia/commons/f/f5/RWS_Tarot_08_Strength.jpg" },
-      { name: "Pustinjak (The Hermit)", meaning: "Odvoj malo vremena za samoću i dobro razmisli o svom sljedećem koraku.", image: "https://upload.wikimedia.org/wikipedia/commons/4/4d/RWS_Tarot_09_Hermit.jpg" },
-      { name: "Točak Sreće (Wheel of Fortune)", meaning: "Prihvati promjene koje dan donosi, jer sve je to dio prirodnog životnog ciklusa.", image: "https://upload.wikimedia.org/wikipedia/commons/3/3c/RWS_Tarot_10_Wheel_of_Fortune.jpg" },
-      { name: "Pravda (Justice)", meaning: "Budi potpuno iskren prema sebi i drugima i preuzmi odgovornost za svoje postupke.", image: "https://upload.wikimedia.org/wikipedia/commons/e/e0/RWS_Tarot_11_Justice.jpg" },
-      { name: "Obešeni Čovek (The Hanged Man)", meaning: "Nemoj forsirati stvari; zastani i pogledaj problem iz potpuno novog ugla.", image: "https://upload.wikimedia.org/wikipedia/commons/2/2b/RWS_Tarot_12_Hanged_Man.jpg" },
-      { name: "Smrt (Death)", meaning: "Pusti ono što je završeno kako bi oslobodio prostor za nove, bolje početke.", image: "https://upload.wikimedia.org/wikipedia/commons/d/d7/RWS_Tarot_13_Death.jpg" },
-      { name: "Umerenost (Temperance)", meaning: "Pronađi zlatnu sredinu u svemu što radiš i izbjegavaj bilo kakve ekstreme.", image: "https://upload.wikimedia.org/wikipedia/commons/f/f8/RWS_Tarot_14_Temperance.jpg" },
-      { name: "Đavo (The Devil)", meaning: "Osvijesti loše navike ili toksične misli koje te sputavaju i počni da se oslobađaš njih.", image: "https://upload.wikimedia.org/wikipedia/commons/5/55/RWS_Tarot_15_Devil.jpg" },
-      { name: "Kula (The Tower)", meaning: "Ako se planovi iznenada sruše, prihvati to kao neophodno čišćenje terena za istinu.", image: "https://upload.wikimedia.org/wikipedia/commons/5/53/RWS_Tarot_16_Tower.jpg" },
-      { name: "Zvezda (The Star)", meaning: "Sačuvaj nadu i vjeru u bolje sjutra, jer te svemir vodi ka iscijeljenju.", image: "https://upload.wikimedia.org/wikipedia/commons/d/db/RWS_Tarot_17_Star.jpg" },
-      { name: "Mesec (The Moon)", meaning: "Ne vjeruj svemu što ti se čini na prvi pogled i plovi oprezno kroz svoje strahove.", image: "https://upload.wikimedia.org/wikipedia/commons/7/7f/RWS_Tarot_18_Moon.jpg" },
-      { name: "Sunce (The Sun)", meaning: "Zrači pozitivnošću, proslavi svoje uspjehe i dopusti svojoj unutrašnjoj radosti da zasija.", image: "https://upload.wikimedia.org/wikipedia/commons/1/17/RWS_Tarot_19_Sun.jpg" },
-      { name: "Sud (Judgement)", meaning: "Osvrni se na prošlost, izvuci lekcije i donesi konačnu odluku koja će te transformisati.", image: "https://upload.wikimedia.org/wikipedia/commons/d/dd/RWS_Tarot_20_Judgement.jpg" },
-      { name: "Svet (The World)", meaning: "Proslavi uspješan završetak jedne faze i osjeti ponos zbog svega što si postigao.", image: "https://upload.wikimedia.org/wikipedia/commons/ff/ff/RWS_Tarot_21_World.jpg" },
-      { name: "As Štapova", meaning: "Prati svoj impuls inspiracije i bez oklijevanja započni taj novi projekat.", image: "https://upload.wikimedia.org/wikipedia/commons/1/11/Wands01.jpg" },
-      { name: "Dvojka Štapova", meaning: "Isplaniraj sljedeće korake i širi svoje vidike izvan trenutne zone komfora.", image: "https://upload.wikimedia.org/wikipedia/commons/0/0f/Wands02.jpg" },
-      { name: "Trojka Štapova", meaning: "Ostani strpljiv i vjeruj da tvoj trud već putuje ka tebi sa otvorenog mora.", image: "https://upload.wikimedia.org/wikipedia/commons/ff/ff/Wands03.jpg" },
-      { name: "Četvorka Štapova", meaning: "Opusti se, proslavi male pobjede i provedi kvalitetno vrijeme sa voljenima.", image: "https://upload.wikimedia.org/wikipedia/commons/a/a4/Wands04.jpg" },
-      { name: "Petica Štapova", meaning: "Ne troši energiju na sitne prepirke, već kanališi takmičarski duh u produktivan rad.", image: "https://upload.wikimedia.org/wikipedia/commons/c/c0/Wands05.jpg" },
-      { name: "Šestica Štapova", meaning: "Ponosno prihvati pohvale i komplimente koje danas dobiješ jer si ih zaslužio.", image: "https://upload.wikimedia.org/wikipedia/commons/3/3b/Wands06.jpg" },
-      { name: "Sedmica Štapova", meaning: "Čvrsto brani svoje stavove i ne dozvoli drugima da ugroze tvoj prostor.", image: "https://upload.wikimedia.org/wikipedia/commons/e/e4/Wands07.jpg" },
-      { name: "Osmica Štapova", meaning: "Reaguj brzo na vijesti i informacije koje ti danas pristižu velikom brzinom.", image: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Wands08.jpg" },
-      { name: "Devetka Štapova", meaning: "Iako si umoran, izdrži još malo jer si na samom koraku do cilja.", image: "https://upload.wikimedia.org/wikipedia/commons/4/4d/Wands09.jpg" },
-      { name: "Desetka Štapova", meaning: "Delegiraj obaveze i nauči da kažeš 'ne' kako ne bi pregorio pod teretom.", image: "https://upload.wikimedia.org/wikipedia/commons/0/0b/Wands10.jpg" },
-      { name: "Paž Štapova", meaning: "Prihvati svaku novu ideju sa dječijom radoznalošću i entuzijazmom.", image: "https://upload.wikimedia.org/wikipedia/commons/6/6a/Wands11.jpg" },
-      { name: "Vitez Štapova", meaning: "Kreni u akciju sa strašću, ali pazi da ne izgoriš u prevelikoj brzini.", image: "https://upload.wikimedia.org/wikipedia/commons/1/16/Wands12.jpg" },
-      { name: "Kraljica Štapova", meaning: "Nastupi samouvjereno, harizmatično i unesi toplinu u sve što radiš", image: "https://upload.wikimedia.org/wikipedia/commons/0/0d/Wands13.jpg" },
-      { name: "Kralj Štapova", meaning: "Preuzmi vođstvo nad situacijom i vizionarski usmjeri druge ka uspjehu.", image: "https://upload.wikimedia.org/wikipedia/commons/ce/ce/Wands14.jpg" },
-      { name: "As Pehara", meaning: "Otvori svoje srce za ljubav, saosećanje i nove emocionalne početke.", image: "https://upload.wikimedia.org/wikipedia/commons/3/36/Cups01.jpg" },
-      { name: "Dvojka Pehara", meaning: "Poveži se dublje sa osobom do koje ti je stalo kroz iskren razgovor.", image: "https://upload.wikimedia.org/wikipedia/commons/f/f8/Cups02.jpg" },
-      { name: "Trojka Pehara", meaning: "Podijeli svoju radost sa prijateljima i nazdravi lijepim trenucima u životu.", image: "https://upload.wikimedia.org/wikipedia/commons/7/7a/Cups03.jpg" },
-      { name: "Četvorka Pehara", meaning: "Otresi apatiju i primijeti ruku koja ti pruža novu priliku, čak i ako ti djeluje nebitno.", image: "https://upload.wikimedia.org/wikipedia/commons/3/35/Cups04.jpg" },
-      { name: "Petica Pehara", meaning: "Prestani da žališ za onim što je izgubljeno i okreni se ka onome što ti je preostalo.", image: "https://upload.wikimedia.org/wikipedia/commons/d/d7/Cups05.jpg" },
-      { name: "Šestica Pehara", meaning: "Poveži se sa lijepim sjećanjima ili starim prijateljem da ti uljepšaju dan.", image: "https://upload.wikimedia.org/wikipedia/commons/1/18/Cups06.jpg" },
-      { name: "Sedmica Pehara", meaning: "Fokusiraj se na jednu stvar i nemoj se izgubiti u moru nerealnih opcija.", image: "https://upload.wikimedia.org/wikipedia/commons/a/ae/Cups07.jpg" },
-      { name: "Osmica Pehara", meaning: "Okreni leđa situaciji koja te emotivno iscrpljuje i hrabro kreni dalje.", image: "https://upload.wikimedia.org/wikipedia/commons/6/60/Cups08.jpg" },
-      { name: "Devetka Pehara", meaning: "Ugodi sebi danas, uživaj u sitnim zadovoljstvima i budi zahvalan na svemu.", image: "https://upload.wikimedia.org/wikipedia/commons/2/24/Cups09.jpg" },
-      { name: "Desetka Pehara", meaning: "Njeguj harmoniju u svom domu i uživaj u bezuslovnoj ljubavi porodice", image: "https://upload.wikimedia.org/wikipedia/commons/8/84/Cups10.jpg" },
-      { name: "Paž Pehara", meaning: "Budi otvoren za intuitivne poruke i neočekivane emotivne gestove.", image: "https://upload.wikimedia.org/wikipedia/commons/ad/ad/Cups11.jpg" },
-      { name: "Vitez Pehara", meaning: "Iskaži svoja osjećanja romantično i prati ritam svog srca", image: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Cups12.jpg" },
-      { name: "Kraljica Pehara", meaning: "Budi puna razumijevanja za tuđe potrebe, ali ne zaboravi da zaštitiš svoj mir.", image: "https://upload.wikimedia.org/wikipedia/commons/6/62/Cups13.jpg" },
-      { name: "Kralj Pehara", meaning: "Ostani smiren i emocionalno stabilan bez obzira na dramu koja te okružuje.", image: "https://upload.wikimedia.org/wikipedia/commons/0/04/Cups14.jpg" },
-      { name: "As Mačeva", meaning: "Iskoristi današnji trenutak mentalne jasnoće da presečeš svaku nedoumicu i kažeš istinu.", image: "https://upload.wikimedia.org/wikipedia/commons/1/1a/Swords01.jpg" },
-      { name: "Dvojka Mačeva", meaning: "Skini povez sa očiju, suoči se sa činjenicama i donesi odluku koju odlažeš.", image: "https://upload.wikimedia.org/wikipedia/commons/9/9e/Swords02.jpg" },
-      { name: "Trojka Mačeva", meaning: "Dozvoli sebi da odboluješ i isplačeš tugu kako bi proces iscijeljenja mogao da počne.", image: "https://upload.wikimedia.org/wikipedia/commons/0/02/Swords03.jpg" },
-      { name: "Četvorka Mačeva", meaning: "Isključi telefon, odmori um i tijelo od stresa i napuni baterije u tišini", image: "https://upload.wikimedia.org/wikipedia/commons/b/bf/Swords04.jpg" },
-      { name: "Petica Mačeva", meaning: "Biraj svoje bitke pametno, jer neka pobjeda u raspravi može donijeti više štete nego koristi.", image: "https://upload.wikimedia.org/wikipedia/commons/2/23/Swords05.jpg" },
-      { name: "Šestica Mačeva", meaning: "Ostavi teške misli iza sebe i mirno se kreni ka stabilnijem periodu.", image: "https://upload.wikimedia.org/wikipedia/commons/2/29/Swords06.jpg" },
-      { name: "Sedmica Mačeva", meaning: "Budi diskretan i pažljivo planiraj svoju strategiju, ali izbjegavaj prevare.", image: "https://upload.wikimedia.org/wikipedia/commons/3/34/Swords07.jpg" },
-      { name: "Osmica Mačeva", meaning: "Osvijesti da su granice koje osjećaš samo u tvojoj glavi i da se možeš osloboditi kad god želiš.", image: "https://upload.wikimedia.org/wikipedia/commons/a/a7/Swords08.jpg" },
-      { name: "Devetka Mačeva", meaning: "Nemoj preuveličavati probleme u svom umu, jer situacija nije tako strašna kako ti se čini.", image: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Swords09.jpg" },
-      { name: "Desetka Mačeva", meaning: "Prihvati da je nešto gotovo, dotakao si dno i od sada stvari mogu ići samo nabolje.", image: "https://upload.wikimedia.org/wikipedia/commons/d/d4/Swords10.jpg" },
-      { name: "Paž Mačeva", meaning: "Ostani radoznao, prikupljaj informacije i budi oprezan sa riječima.", image: "https://upload.wikimedia.org/wikipedia/commons/4/4c/Swords11.jpg" },
-      { name: "Vitez Mačeva", meaning: "Sastavi jasan logički plan i kreni u direktno rješavanje problema bez oklijevanja.", image: "https://upload.wikimedia.org/wikipedia/commons/b/b0/Swords12.jpg" },
-      { name: "Kraljica Mačeva", meaning: "Sagledaj situaciju potpuno objektivno i donesi odluku hladne glave, bez emocija.", image: "https://upload.wikimedia.org/wikipedia/commons/d/d4/Swords13.jpg" },
-      { name: "Kralj Mačeva", meaning: "Postavi se kao autoritet, govori istinu i vodi se isključivo činjenicama i pravdom.", image: "https://upload.wikimedia.org/wikipedia/commons/3/33/Swords14.jpg" },
-      { name: "As Pentakla", meaning: "Iskoristi novu priliku za zaradu ili praktičan napredak koja ti se danas otvara.", image: "https://upload.wikimedia.org/wikipedia/commons/f/fd/Pentarqs01.jpg" },
-      { name: "Dvojka Pentakla", meaning: "Prilagodi se promjenama i vješto žongliraj obavezama sa osmjehom na licu.", image: "https://upload.wikimedia.org/wikipedia/commons/9/90/Pentarqs02.jpg" },
-      { name: "Trojka Pentakla", meaning: "Udruži snage sa kolegama, jer će timski rad danas donijeti najbolji rezultat.", image: "https://upload.wikimedia.org/wikipedia/commons/e/e2/Pentarqs03.jpg" },
-      { name: "Četvorka Pentakla", meaning: "Pripazi na troškove, ali nemoj dozvoliti da te strah od nemaštine učini škrtim.", image: "https://upload.wikimedia.org/wikipedia/commons/3/35/Pentarqs04.jpg" },
-      { name: "Petica Pentakla", meaning: "Ako prolaziš kroz težak period, sjeti se da potražiš pomoć jer nisi sam.", image: "https://upload.wikimedia.org/wikipedia/commons/9/96/Pentarqs05.jpg" },
-      { name: "Šestica Pentakla", meaning: "Podijeli ono što imaš sa onima u nevolji ili sa zahvalnošću primi ponuđenu podršku.", image: "https://upload.wikimedia.org/wikipedia/commons/a/a6/Pentarqs06.jpg" },
-      { name: "Sedmica Pentakla", meaning: "Budi strpljiv sa svojim projektima, jer plodovima tvog rada treba vremena da sazru.", image: "https://upload.wikimedia.org/wikipedia/commons/6/6a/Pentarqs07.jpg" },
-      { name: "Osmica Pentakla", meaning: "Posveti se detaljima u svom poslu i uči kroz svakodnevnu praksu.", image: "https://upload.wikimedia.org/wikipedia/commons/4/49/Pentarqs08.jpg" },
-      { name: "Devetka Pentakla", meaning: "Uživaj u plodovima svog truda i priušti sebi nešto lijepo i kvalitetno.", image: "https://upload.wikimedia.org/wikipedia/commons/f/f0/Pentarqs09.jpg" },
-      { name: "Desetka Pentakla", meaning: "Razmišljaj na duge staze i investiraj u stabilnost i sigurnost svoje porodice.", image: "https://upload.wikimedia.org/wikipedia/commons/4/42/Pentarqs10.jpg" },
-      { name: "Paž Pentakla", meaning: "Počni da učiš nešto novo ili napravi prvi, mali korak ka ostvarenju finansijskog cilja.", image: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Pentarqs11.jpg" },
-      { name: "Vitez Pentakla", meaning: "Ostani dosledan svojoj rutini i znaj da spor i stabilan rad uvijek pobjeđuje.", image: "https://upload.wikimedia.org/wikipedia/commons/d/d5/Pentarqs12.jpg" },
-      { name: "Kraljica Pentakla", meaning: "Pobrini se za svoje tijelo, sredi svoj prostor i unesi praktičnu udobnost u svoj dan.", image: "https://upload.wikimedia.org/wikipedia/commons/8/88/Pentarqs13.jpg" },
-      { name: "Kralj Pentakla", meaning: "Upravljaj svojim resursima mudro i sa samopouzdanjem gradi svoje materijalno carstvo.", image: "https://upload.wikimedia.org/wikipedia/commons/1/1c/Pentarqs14.jpg" }
+      { name: "Luda (The Fool)", meaning: "Novi počeci, nevinost, spontanost, slobodouman duh.", image: "https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg" },
+      { name: "Mag (The Magician)", meaning: "Manifestacija, resursi, snaga volje, veština.", image: "https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg" },
+      { name: "Visoka Sveštenica (The High Priestess)", meaning: "Intuicija, podsvest, unutrašnji glas, tajne.", image: "https://upload.wikimedia.org/wikipedia/commons/8/88/RWS_Tarot_02_High_Priestess.jpg" },
+      { name: "Carica (The Empress)", meaning: "Plodnost, obilje, priroda, kreativnost, majčinska energija.", image: "https://upload.wikimedia.org/wikipedia/commons/d/d2/RWS_Tarot_03_Empress.jpg" },
+      { name: "Car (The Emperor)", meaning: "Autoritet, struktura, stabilnost, kontrola.", image: "https://upload.wikimedia.org/wikipedia/commons/c/c3/RWS_Tarot_04_Emperor.jpg" },
+      { name: "Sveštenik (The Hierophant)", meaning: "Tradicija, duhovno vođstvo, verovanja, obrazovanje.", image: "https://upload.wikimedia.org/wikipedia/commons/8/8d/RWS_Tarot_05_Hierophant.jpg" },
+      { name: "Ljubavnici (The Lovers)", meaning: "Ljubav, harmonija, veze, izbori i vrednosti.", image: "https://upload.wikimedia.org/wikipedia/commons/3/3a/TheLovers.jpg" },
+      { name: "Kola (The Chariot)", meaning: "Kontrola, pobeda, odlučnost, fokus na cilj.", image: "https://upload.wikimedia.org/wikipedia/commons/9/9b/RWS_Tarot_07_Chariot.jpg" },
+      { name: "Snaga (Strength)", meaning: "Hrabrost, strpljenje, saosećanje, unutrašnja snaga.", image: "https://upload.wikimedia.org/wikipedia/commons/f/f5/RWS_Tarot_08_Strength.jpg" },
+      { name: "Pustinjak (The Hermit)", meaning: "Samospoznaja, traženje istine, unutrašnji mir, povlačenje.", image: "https://upload.wikimedia.org/wikipedia/commons/4/4d/RWS_Tarot_09_Hermit.jpg" },
+      { name: "Točak Sreće (Wheel of Fortune)", meaning: "Ciklusi, sudbina, promene, nepredvidivost.", image: "https://upload.wikimedia.org/wikipedia/commons/3/3c/RWS_Tarot_10_Wheel_of_Fortune.jpg" },
+      { name: "Pravda (Justice)", meaning: "Istina, pravednost, uzrok i posledica, zakoni.", image: "https://upload.wikimedia.org/wikipedia/commons/e/e0/RWS_Tarot_11_Justice.jpg" },
+      { name: "Obešeni Čovek (The Hanged Man)", meaning: "Neznatne žrtve, nova perspektiva, pauza, prepuštanje.", image: "https://upload.wikimedia.org/wikipedia/commons/2/2b/RWS_Tarot_12_Hanged_Man.jpg" },
+      { name: "Smrt (Death)", meaning: "Kraj jednog ciklusa, transformacija, novi početak.", image: "https://upload.wikimedia.org/wikipedia/commons/d/d7/RWS_Tarot_13_Death.jpg" },
+      { name: "Umerenost (Temperance)", meaning: "Balans, umerenost, mir, ravnoteža.", image: "https://upload.wikimedia.org/wikipedia/commons/f/f8/RWS_Tarot_14_Temperance.jpg" },
+      { name: "Đavo (The Devil)", meaning: "Vezanost, materijalizam, iluzije, loše navike.", image: "https://upload.wikimedia.org/wikipedia/commons/5/55/RWS_Tarot_15_Devil.jpg" },
+      { name: "Kula (The Tower)", meaning: "Iznenadna promena, buđenje, rušenje starih iluzija.", image: "https://upload.wikimedia.org/wikipedia/commons/5/53/RWS_Tarot_16_Tower.jpg" },
+      { name: "Zvezda (The Star)", meaning: "Nada, verovanje, inspiracija, obnova energije.", image: "https://upload.wikimedia.org/wikipedia/commons/d/db/RWS_Tarot_17_Star.jpg" },
+      { name: "Mesec (The Moon)", meaning: "Iluzije, strahovi, intuicija, nesigurnost.", image: "https://upload.wikimedia.org/wikipedia/commons/7/7f/RWS_Tarot_18_Moon.jpg" },
+      { name: "Sunce (The Sun)", meaning: "Radost, uspeh, pozitivnost, vitalnost.", image: "https://upload.wikimedia.org/wikipedia/commons/1/17/RWS_Tarot_19_Sun.jpg" },
+      { name: "Sud (Judgement)", meaning: "Evaluacija, poziv, oproštaj, donošenje važnih odluka.", image: "https://upload.wikimedia.org/wikipedia/commons/d/dd/RWS_Tarot_20_Judgement.jpg" },
+      { name: "Svet (The World)", meaning: "Završetak, ispunjenje, uspeh, integracija.", image: "https://upload.wikimedia.org/wikipedia/commons/ff/ff/RWS_Tarot_21_World.jpg" },
+      { name: "As Štapova", meaning: "Inspiracija, nova energija, poticaj, kreativni početak.", image: "https://upload.wikimedia.org/wikipedia/commons/1/11/Wands01.jpg" },
+      { name: "Dvojka Štapova", meaning: "Planiranje, napredak, donošenje odluka, otkrivanje.", image: "https://upload.wikimedia.org/wikipedia/commons/0/0f/Wands02.jpg" },
+      { name: "Trojka Štapova", meaning: "Širenje, dugoročni planovi, samopouzdanje, uspeh u najavi.", image: "https://upload.wikimedia.org/wikipedia/commons/ff/ff/Wands03.jpg" },
+      { name: "Četvorka Štapova", meaning: "Slavlje, dom, harmonija, stabilnost, uspeh.", image: "https://upload.wikimedia.org/wikipedia/commons/a/a4/Wands04.jpg" },
+      { name: "Petica Štapova", meaning: "Konflikt, takmičenje, borba mišljenja, izazovi.", image: "https://upload.wikimedia.org/wikipedia/commons/c/c0/Wands05.jpg" },
+      { name: "Šestica Štapova", meaning: "Pobeda, priznanje, uspeh, ponos.", image: "https://upload.wikimedia.org/wikipedia/commons/3/3b/Wands06.jpg" },
+      { name: "Sedmica Štapova", meaning: "Obrana, istrajnost, borba za sopstvene stavove.", image: "https://upload.wikimedia.org/wikipedia/commons/e/e4/Wands07.jpg" },
+      { name: "Osmica Štapova", meaning: "Brza akcija, kretanje, komunikacija, dobre vesti.", image: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Wands08.jpg" },
+      { name: "Devetka Štapova", meaning: "Istrajnost, oprez, poslednji napori pred pobedu.", image: "https://upload.wikimedia.org/wikipedia/commons/4/4d/Wands09.jpg" },
+      { name: "Desetka Štapova", meaning: "Teret, velika odgovornost, umor, preopterećenost.", image: "https://upload.wikimedia.org/wikipedia/commons/0/0b/Wands10.jpg" },
+      { name: "Paž Štapova", meaning: "Entuzijazam, nove ideje, istraživanje, vesti.", image: "https://upload.wikimedia.org/wikipedia/commons/6/6a/Wands11.jpg" },
+      { name: "Vitez Štapova", meaning: "Akcija, strast, avantura, brzina, impulsivnost.", image: "https://upload.wikimedia.org/wikipedia/commons/1/16/Wands12.jpg" },
+      { name: "Kraljica Štapova", meaning: "Samopouzdanje, toplina, strast, odvažnost.", image: "https://upload.wikimedia.org/wikipedia/commons/0/0d/Wands13.jpg" },
+      { name: "Kralj Štapova", meaning: "Liderstvo, vizija, velika energija, samokontrola.", image: "https://upload.wikimedia.org/wikipedia/commons/ce/ce/Wands14.jpg" },
+      { name: "As Pehara", meaning: "Ljubav, nova osećanja, emotivno ispunjenje, saosećanje.", image: "https://upload.wikimedia.org/wikipedia/commons/3/36/Cups01.jpg" },
+      { name: "Dvojka Pehara", meaning: "Partnerstvo, privlačnost, emotivna povezanost, harmonija.", image: "https://upload.wikimedia.org/wikipedia/commons/f/f8/Cups02.jpg" },
+      { name: "Trojka Pehara", meaning: "Prijateljstvo, slavlje, zajednica, radost.", image: "https://upload.wikimedia.org/wikipedia/commons/7/7a/Cups03.jpg" },
+      { name: "Četvorka Pehara", meaning: "Apatija, dosada, propuštene prilike, razmišljanje.", image: "https://upload.wikimedia.org/wikipedia/commons/3/35/Cups04.jpg" },
+      { name: "Petica Pehara", meaning: "Gubitak, tuga, fokus na negativno, žaljenje.", image: "https://upload.wikimedia.org/wikipedia/commons/d/d7/Cups05.jpg" },
+      { name: "Šestica Pehara", meaning: "Nostalgija, uspomene, nostalgija, staro prijateljstvo.", image: "https://upload.wikimedia.org/wikipedia/commons/1/18/Cups06.jpg" },
+      { name: "Sedmica Pehara", meaning: "Mogućnosti, iluzije, maštanje, neodlučnost.", image: "https://upload.wikimedia.org/wikipedia/commons/a/ae/Cups07.jpg" },
+      { name: "Osmica Pehara", meaning: "Napuštanje prošlosti, traženje višeg smisla, odlazak.", image: "https://upload.wikimedia.org/wikipedia/commons/6/60/Cups08.jpg" },
+      { name: "Devetka Pehara", meaning: "Zadovoljstvo, ispunjenje želja, sreća, blagostanje.", image: "https://upload.wikimedia.org/wikipedia/commons/2/24/Cups09.jpg" },
+      { name: "Desetka Pehara", meaning: "Porodična sreća, potpun mir, emotivno ispunjenje.", image: "https://upload.wikimedia.org/wikipedia/commons/8/84/Cups10.jpg" },
+      { name: "Paž Pehara", meaning: "Kreativne poruke, intuicija, nežnost, nove ideje.", image: "https://upload.wikimedia.org/wikipedia/commons/ad/ad/Cups11.jpg" },
+      { name: "Vitez Pehara", meaning: "Romantika, šarm, ponude, sledenje srca.", image: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Cups12.jpg" },
+      { name: "Kraljica Pehara", meaning: "Saosećanje, briga, intuicija, emotivna stabilnost.", image: "https://upload.wikimedia.org/wikipedia/commons/6/62/Cups13.jpg" },
+      { name: "Kralj Pehara", meaning: "Emotivna zrelost, kontrola nad osećanjima, mudrost.", image: "https://upload.wikimedia.org/wikipedia/commons/0/04/Cups14.jpg" },
+      { name: "As Mačeva", meaning: "Jasnoća, proboj, nova ideja, istina, mentalna snaga.", image: "https://upload.wikimedia.org/wikipedia/commons/1/1a/Swords01.jpg" },
+      { name: "Dvojka Mačeva", meaning: "Neodlučnost, blokada, izbegavanje istine, dilema.", image: "https://upload.wikimedia.org/wikipedia/commons/9/9e/Swords02.jpg" },
+      { name: "Trojka Mačeva", meaning: "Slomljeno srce, tuga, tuga, teške vesti.", image: "https://upload.wikimedia.org/wikipedia/commons/0/02/Swords03.jpg" },
+      { name: "Četvorka Mačeva", meaning: "Omor, odmor, oporavak, meditacija.", image: "https://upload.wikimedia.org/wikipedia/commons/b/bf/Swords04.jpg" },
+      { name: "Petica Mačeva", meaning: "Pobeda po visoku cenu, sukob, nepravda.", image: "https://upload.wikimedia.org/wikipedia/commons/2/23/Swords05.jpg" },
+      { name: "Šestica Mačeva", meaning: "Odlazak iz teških vremena, tranzicija, mirnije vode.", image: "https://upload.wikimedia.org/wikipedia/commons/2/29/Swords06.jpg" },
+      { name: "Sedmica Mačeva", meaning: "Lukavstvo, tajne, samostalno delovanje, oprez.", image: "https://upload.wikimedia.org/wikipedia/commons/3/34/Swords07.jpg" },
+      { name: "Osmica Mačeva", meaning: "Osećaj zarobljenosti, samoograničenje, mentalna blokada.", image: "https://upload.wikimedia.org/wikipedia/commons/a/a7/Swords08.jpg" },
+      { name: "Devetka Mačeva", meaning: "Anksioznost, nesanica, strahovi, brige.", image: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Swords09.jpg" },
+      { name: "Desetka Mačeva", meaning: "Dno, poraz, bolan kraj, ali i novi početak.", image: "https://upload.wikimedia.org/wikipedia/commons/d/d4/Swords10.jpg" },
+      { name: "Paž Mačeva", meaning: "Radoznalost, komunikacija, oštar um, nove informacije.", image: "https://upload.wikimedia.org/wikipedia/commons/4/4c/Swords11.jpg" },
+      { name: "Vitez Mačeva", meaning: "Ambicioznost, brzina, brza reakcija, direktnost.", image: "https://upload.wikimedia.org/wikipedia/commons/b/b0/Swords12.jpg" },
+      { name: "Kraljica Mačeva", meaning: "Nezavisnost, brzi zaključci, istina, jasne granice.", image: "https://upload.wikimedia.org/wikipedia/commons/d/d4/Swords13.jpg" },
+      { name: "Kralj Mačeva", meaning: "Intelekt, autoritet, pravednost, logika i disciplina.", image: "https://upload.wikimedia.org/wikipedia/commons/3/33/Swords14.jpg" },
+      { name: "As Pentakla", meaning: "Nova prilika za zaradu, finansijska ponuda, stabilan početak.", image: "https://upload.wikimedia.org/wikipedia/commons/f/fd/Pentarqs01.jpg" },
+      { name: "Dvojka Pentakla", meaning: "Balansiranje, prilagođavanje, rad sa više obaveza.", image: "https://upload.wikimedia.org/wikipedia/commons/9/90/Pentarqs02.jpg" },
+      { name: "Trojka Pentakla", meaning: "Timski rad, veština, učenje, planiranje posla.", image: "https://upload.wikimedia.org/wikipedia/commons/e/e2/Pentarqs03.jpg" },
+      { name: "Četvorka Pentakla", meaning: "Oprez s novcem, stabilnost, štednja, nespremnost na rizik.", image: "https://upload.wikimedia.org/wikipedia/commons/3/35/Pentarqs04.jpg" },
+      { name: "Petica Pentakla", meaning: "Privremene finansijske teškoće, osećaj izolovanosti.", image: "https://upload.wikimedia.org/wikipedia/commons/9/96/Pentarqs05.jpg" },
+      { name: "Šestica Pentakla", meaning: "Velikodušnost, pomoć, deljenje resursa, darivanje.", image: "https://upload.wikimedia.org/wikipedia/commons/a/a6/Pentarqs06.jpg" },
+      { name: "Sedmica Pentakla", meaning: "Istrajnost, čekanje rezultata, dugoročan rad.", image: "https://upload.wikimedia.org/wikipedia/commons/6/6a/Pentarqs07.jpg" },
+      { name: "Osmica Pentakla", meaning: "Majstorstvo, posvećenost radu, usavršavanje veština.", image: "https://upload.wikimedia.org/wikipedia/commons/4/49/Pentarqs08.jpg" },
+      { name: "Devetka Pentakla", meaning: "Nezavisnost, luksuz, uživanje u plodovima rada.", image: "https://upload.wikimedia.org/wikipedia/commons/f/f0/Pentarqs09.jpg" },
+      { name: "Desetka Pentakla", meaning: "Bogatstvo, porodična stabilnost, dugoročan uspeh.", image: "https://upload.wikimedia.org/wikipedia/commons/4/42/Pentarqs10.jpg" },
+      { name: "Paž Pentakla", meaning: "Učenje, dobra prilika, postavljanje ciljeva.", image: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Pentarqs11.jpg" },
+      { name: "Vitez Pentakla", meaning: "Pouzdanost, marljivost, rutinski rad, strpljenje.", image: "https://upload.wikimedia.org/wikipedia/commons/d/d5/Pentarqs12.jpg" },
+      { name: "Kraljica Pentakla", meaning: "Praktičnost, briga o domu, finansijska sigurnost.", image: "https://upload.wikimedia.org/wikipedia/commons/8/88/Pentarqs13.jpg" },
+      { name: "Kralj Pentakla", meaning: "Uspeh, poslovna mudrost, finansijska stabilnost.", image: "https://upload.wikimedia.org/wikipedia/commons/1/1c/Pentarqs14.jpg" }
     ];
 
     function drawCard() {
@@ -381,19 +447,14 @@
     }
 
     function renderujTekst(element, value) {
-      if (!element) return false;
-
-      const tekst = normalizujTekst(value);
-      if (!tekst) return false;
-
-      // marked je učitan u <head>. Fallback je običan tekst ako CDN nije dostupan.
+      if (!element) return;
+      const text = normalizujTekst(value);
       if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
-        element.innerHTML = marked.parse(tekst);
+        element.innerHTML = sanitizujHtml(marked.parse(text));
       } else {
-        element.textContent = tekst;
+        element.textContent = text;
       }
-
-      return true;
+      zastitiLinkove(element);
     }
 
     function nadjiZnak(data, znak) {
@@ -465,36 +526,20 @@
     }
 
     function parseCmsMarkdown(raw) {
-      let front = {};
-      let body = raw || '';
-
-      // Decap CMS najčešće čuva:
-      // ---
-      // title: "..."
-      // description: "..."
-      // ---
-      // sadržaj...
-      const match = body.match(/^---\s*\n([\s\S]*?)\n---\s*\n?([\s\S]*)$/);
-
-      if (match) {
-        const frontMatter = match[1];
-        body = match[2].trim();
-
-        // Namjerno jednostavan parser za naša poznata CMS polja.
-        // Podržava navodnike, nenavodnike i vrijednosti sa dvotačkom.
-        frontMatter.split(/\r?\n/).forEach(line => {
-          const m = line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
-          if (!m) return;
-          let value = m[2].trim();
-          if ((value.startsWith('"') && value.endsWith('"')) ||
-              (value.startsWith("'") && value.endsWith("'"))) {
-            value = value.slice(1, -1);
-          }
-          front[m[1]] = value;
+      const text = String(raw || '');
+      const match = text.match(/^---\s*\n([\s\S]*?)\n---\s*\n?([\s\S]*)$/);
+      if (!match) return { data: {}, content: text };
+      let data = {};
+      try {
+        if (typeof jsyaml !== 'undefined') data = jsyaml.load(match[1]) || {};
+      } catch (_) {
+        data = {};
+        match[1].split(/\r?\n/).forEach(line => {
+          const m = line.match(/^([^:]+):\s*(.*)$/);
+          if (m) data[m[1].trim()] = m[2].trim().replace(/^['\"]|['\"]$/g, '');
         });
       }
-
-      return { ...front, body, content: body };
+      return { data: data || {}, content: match[2] || '' };
     }
 
     async function ucitajHoroskop() {
