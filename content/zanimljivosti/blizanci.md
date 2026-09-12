@@ -1,5 +1,5 @@
 ---
-title: BLIZANCI
+title: BLIZANCI - Opis znaka i karaktera
 description: Opis znaka i karaktera
 ---
 Blizanci su treći znak zodijaka, vazdušni mutabilni znak kojim vlada planeta Merkur.
