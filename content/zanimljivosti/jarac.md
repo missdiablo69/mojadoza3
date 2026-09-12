@@ -1,5 +1,5 @@
 ---
-title: JARAC
+title: JARAC - Opis znaka i karaktera
 description: Opis znaka i karaktera
 ---
 Jarac je deseti znak zodijaka, zemljani kardinalni znak kojim vlada planeta Saturn.
