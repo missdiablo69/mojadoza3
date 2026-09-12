@@ -1,5 +1,5 @@
 ---
-title: VODOLIJA
+title: VODOLIJA - Opis znaka i karaktera
 description: Opis znaka i karaktera
 ---
 Vodolija je jedanaesti znak zodijaka, vazdušni fiksni znak kojim vladaju planete Uran i Saturn.
