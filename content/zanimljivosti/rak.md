@@ -1,5 +1,5 @@
 ---
-title: RAK
+title: RAK - Opis znaka i karaktera
 description: Opis znaka i karakter
 ---
 Rak je četvrti znak zodijaka, vodeni kardinalni znak kojim vlada Mjesec.
