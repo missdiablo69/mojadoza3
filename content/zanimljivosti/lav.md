@@ -1,5 +1,5 @@
 ---
-title: LAV
+title: LAV - Opis znaka i karaktera
 description: Opis znaka i karaktera
 ---
 Lav je peti znak zodijaka, vatreni fiksni znak kojim vlada Sunce.
