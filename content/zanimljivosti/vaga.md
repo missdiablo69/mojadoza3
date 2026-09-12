@@ -1,5 +1,5 @@
 ---
-title: VAGA
+title: VAGA - Opis znaka i karaktera
 description: Opis znak i karaktera
 ---
 Vaga je sedmi znak zodijaka, vazdušni kardinalni znak kojim vlada planeta Venera.
