@@ -1,5 +1,5 @@
 ---
-title: STRIJELAC
+title: STRIJELAC - Opis znaka i karaktera
 description: Opis znaka i karaktera
 ---
 Strijelac je deveti znak zodijaka, vatreni mutabilni znak kojim vlada planeta Jupiter.
