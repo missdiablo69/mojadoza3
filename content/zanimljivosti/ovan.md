@@ -1,5 +1,5 @@
 ---
-title: "OVAN "
+title: OVAN  - Opis znaka i karaktera
 description: "Opis znaka i karaktera "
 ---
 Ovan je prvi znak zodijaka, vatreni kardinalni znak kojim vlada planeta Mars.
