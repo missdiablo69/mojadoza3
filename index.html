@@ -693,9 +693,18 @@
         kontejner.innerHTML = '';
 
         posts.forEach((z) => {
-          const naslov = normalizujTekst(z.title ?? z.naslov ?? '').trim();
-          const opis = normalizujTekst(z.description ?? z.opis ?? '').trim();
-          const body = normalizujTekst(z.body ?? z.tekst ?? z.content ?? '').trim();
+          // Markdown fajlovi iz Decap CMS-a vraćaju podatke u z.data,
+          // dok JSON fajlovi mogu imati polja direktno u z.
+          const meta = (z && z.data && typeof z.data === 'object') ? z.data : z;
+          const naslov = normalizujTekst(
+            meta?.naslov ?? meta?.title ?? meta?.NASLOV ?? ''
+          ).trim();
+          const opis = normalizujTekst(
+            meta?.opis ?? meta?.description ?? meta?.OPIS ?? ''
+          ).trim();
+          const body = normalizujTekst(
+            meta?.body ?? meta?.tekst ?? meta?.content ?? z?.content ?? ''
+          ).trim();
           const tekst = body || opis;
 
           const item = document.createElement('div');
@@ -707,7 +716,14 @@
           dugme.setAttribute('aria-expanded', 'false');
 
           const naslovSpan = document.createElement('span');
-          naslovSpan.textContent = naslov || 'Bez naslova';
+          // Ako CMS nema NASLOV/TITLE u front matter-u, pokušaj uzeti
+          // prvi Markdown H1/H2 naslov iz sadržaja prije prikaza "Bez naslova".
+          let finalniNaslov = naslov;
+          if (!finalniNaslov) {
+            const headingMatch = String(z?.content || '').match(/^#{1,2}\s+(.+)$/m);
+            if (headingMatch) finalniNaslov = headingMatch[1].trim();
+          }
+          naslovSpan.textContent = finalniNaslov || 'Bez naslova';
 
           const strelicaSpan = document.createElement('span');
           strelicaSpan.className = 'strelica';
