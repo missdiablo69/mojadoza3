@@ -1,5 +1,5 @@
 ---
-title: "RIBE "
+title: RIBE - Opis znaka i karaktera
 description: Opis znaka i karaktera
 ---
 Ribe su dvanaesti i posljednji znak zodijaka, vodeni mutabilni znak kojim vladaju planete Neptun i Jupiter.
