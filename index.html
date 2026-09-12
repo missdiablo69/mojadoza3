@@ -32,7 +32,59 @@
       font-family: var(--font-main);
     }
     h1, h2, h3 { font-family: var(--font-heading); }
+    /* Stilovi za sekciju Zanimljivosti - Lista naslova */
+.zanimljivosti-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 850px;
+    margin: 0 auto;
+}
+
+.tekst-item {
+    background: var(--card-bg);
+    border: 1px solid var(--accent-color);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.tekst-naslov-btn {
+    width: 100%;
+    padding: 16px 20px;
+    background: transparent;
+    color: var(--accent-color);
+    border: none;
+    text-align: left;
+    font-size: 1.1rem;
+    font-family: var(--font-heading);
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+}
+
+.tekst-naslov-btn:hover {
+    background: rgba(212, 175, 55, 0.15);
+}
+
+.tekst-sadrzaj {
+    display: none;
+    padding: 20px;
+    border-top: 1px solid #332a52;
+    color: var(--text-color);
+    line-height: 1.7;
+    background-color: rgba(13, 10, 26, 0.5);
+}
+
+.tekst-item.otvoren .tekst-sadrzaj {
+    display: block;
+}
     header {
+  
+}
       background: rgba(26, 21, 48, 0.9);
       padding: 20px;
       text-align: center;
@@ -723,7 +775,67 @@
         btn.innerHTML = "🔇 Muzika Utišana";
       }
     }
+function prikaziZanimljivosti(tekstovi) {
+    const kontejner = document.getElementById('sekcija-zanimljivosti');
+    if (!kontejner) return;
 
-    ucitajSveSekcije();
-  </script>
-</body>
+    // 1. Sortiranje po NASLOVU (A-Z)
+    tekstovi.sort((a, b) => {
+        const naslovA = (a.naslov || a.title || '').toLowerCase();
+        const naslovB = (b.naslov || b.title || '').toLowerCase();
+        return naslovA.localeCompare(naslovB, 'sr');
+    });
+
+    // 2. Postavljanje klase za vertikalnu listu
+    kontejner.className = 'zanimljivosti-lista';
+    kontejner.innerHTML = '';
+
+    if (tekstovi.length === 0) {
+        kontejner.innerHTML = '<p style="text-align:center;">Trenutno nema unesenih tekstova.</p>';
+        return;
+    }
+
+    // 3. Prikaz samo naslova jedan ispod drugog
+    tekstovi.forEach(tekst => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'tekst-item';
+
+        const naslovBtn = document.createElement('button');
+        naslovBtn.className = 'tekst-naslov-btn';
+        
+        const naslovTekst = tekst.naslov || tekst.title || 'Bez naslova';
+        naslovBtn.innerHTML = `<span>${sanitizujHtml(naslovTekst)}</span> <span class="strelica">▼</span>`;
+
+        const sadrzajDiv = document.createElement('div');
+        sadrzajDiv.className = 'tekst-sadrzaj';
+        
+        const siroviSadrzaj = tekst.sadrzaj || tekst.body || tekst.tekst || '';
+        const htmlSadrzaj = typeof marked !== 'undefined' ? marked.parse(siroviSadrzaj) : siroviSadrzaj;
+        sadrzajDiv.innerHTML = sanitizujHtml(htmlSadrzaj);
+
+        // Dodavanje klika na naslov (Harmonika efekat)
+        naslovBtn.addEventListener('click', () => {
+            const jeOtvoren = itemDiv.classList.contains('otvoren');
+            
+            document.querySelectorAll('.tekst-item').forEach(el => {
+                el.classList.remove('otvoren');
+                const str = el.querySelector('.strelica');
+                if (str) str.textContent = '▼';
+            });
+
+            if (!jeOtvoren) {
+                itemDiv.classList.add('otvoren');
+                naslovBtn.querySelector('.strelica').textContent = '▲';
+            }
+        });
+
+        itemDiv.appendChild(naslovBtn);
+        itemDiv.appendChild(sadrzajDiv);
+        kontejner.appendChild(itemDiv);
+    });
+
+    zastitiLinkove(kontejner);
+}
+
+ucitajSveSekcije();
+  </script>  
