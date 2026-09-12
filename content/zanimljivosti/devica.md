@@ -1,5 +1,5 @@
 ---
-title: DEVICA
+title: DEVICA - Opis znaka i karaktera
 description: Opis znak i karaktera
 ---
 Djevica je šesti znak zodijaka, zemljani mutabilni znak kojim vlada planeta Merkur.
