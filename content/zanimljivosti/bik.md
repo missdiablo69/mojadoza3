@@ -1,5 +1,5 @@
 ---
-title: BIK
+title: BIK - Opis znaka i karaktera
 description: Opis znaka i karaktera
 ---
 Bik je drugi znak zodijaka, zemljani fiksni znak kojim vlada planeta Venera.
