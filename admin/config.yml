@@ -17,7 +17,6 @@ collections:
           - { label: "Pozadinska Slika", name: "pozadina", widget: "image", required: false }
           - { label: "Pozadinska Muzika (MP3)", name: "muzika", widget: "file", required: false }
 
-  # 2. MESEČNI HOROSKOP
   - name: "horoskop"
     label: "Mesečni Horoskop"
     folder: "content/horoskop"
@@ -38,7 +37,6 @@ collections:
       - { label: "Vodolija", name: "vodolija", widget: "markdown", required: false }
       - { label: "Ribe", name: "ribe", widget: "markdown", required: false }
 
-  # 3. ZANIMLJIVOSTI & TEKSTOVI
   - name: "zanimljivosti"
     label: "Zanimljivosti & Tekstovi"
     folder: "content/zanimljivosti"
@@ -49,7 +47,18 @@ collections:
       - { label: "Kratak Opis", name: "description", widget: "string" }
       - { label: "Sadržaj Teksta", name: "body", widget: "markdown" }
 
-  # 4. PRIVATNA ČITANJA
+  # BLOG
+  - name: "blog"
+    label: "Blog"
+    folder: "content/blog"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Naslov Bloga", name: "title", widget: "string" }
+      - { label: "Kratak Opis", name: "description", widget: "text", required: false }
+      - { label: "Naslovna Slika", name: "image", widget: "image", required: false }
+      - { label: "Sadržaj Bloga", name: "body", widget: "markdown" }
+
   - name: "privatna_citanja"
     label: "Privatna Čitanja"
     files:
