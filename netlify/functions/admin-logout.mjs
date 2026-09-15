@@ -1,4 +1,8 @@
-import { logout } from "@netlify/identity";
+import {
+  logout,
+  verifyRequestOrigin
+} from "@netlify/identity";
+
 import { json } from "./_common.mjs";
 
 export default async function handler(request) {
@@ -9,6 +13,8 @@ export default async function handler(request) {
         405
       );
     }
+
+    verifyRequestOrigin(request);
 
     await logout();
 
