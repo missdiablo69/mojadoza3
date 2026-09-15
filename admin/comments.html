@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="sr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Moja Doza — 💬 KOMENTARI</title>
+  <style>
+    :root{--bg:#0d0a1a;--card:#1a1530;--gold:#d4af37;--text:#f0e6ff;--muted:#b9afd0;--danger:#ff8f8f;--ok:#bde8c3}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+    .wrap{max-width:1100px;margin:0 auto;padding:30px 18px 70px}.top{display:flex;justify-content:space-between;gap:15px;align-items:center;flex-wrap:wrap}
+    h1{font-family:Georgia,serif;color:var(--gold);margin:0 0 6px}.sub{color:var(--muted);margin:0 0 25px}
+    .card{background:var(--card);border:1px solid #4b3b70;border-radius:12px;padding:20px;margin-bottom:18px}
+    input,textarea,select{width:100%;background:#0f0b1d;color:var(--text);border:1px solid #4b3b70;border-radius:8px;padding:11px;font:inherit}
+    textarea{min-height:90px;resize:vertical}.login{max-width:430px;margin:70px auto}.grid{display:grid;gap:12px}
+    button{border:1px solid var(--gold);background:transparent;color:var(--gold);border-radius:8px;padding:9px 13px;cursor:pointer}
+    button:hover{background:rgba(212,175,55,.12)}button.danger{border-color:var(--danger);color:var(--danger)}
+    button.ok{border-color:var(--ok);color:var(--ok)}button:disabled{opacity:.5;cursor:wait}
+    .comment{border-top:1px solid #3b3057;padding:18px 0}.comment:first-child{border-top:0}.meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .name{font-weight:bold;color:var(--gold)}.date{color:var(--muted);font-size:.8rem}.post{font-size:.85rem;color:#c9bee0;margin:5px 0 10px}
+    .body{white-space:pre-wrap;overflow-wrap:anywhere}.status{font-size:.75rem;border:1px solid #4b3b70;padding:3px 7px;border-radius:99px}
+    .reply{margin-top:12px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.msg{min-height:20px;margin:10px 0}.err{color:var(--danger)}.okmsg{color:var(--ok)}
+    .hidden{display:none!important}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div id="loginView" class="card login">
+    <h1>💬 KOMENTARI</h1>
+    <p class="sub">Moja Doza Back Office</p>
+    <form id="loginForm" class="grid">
+      <input id="email" type="email" required placeholder="Admin email">
+      <input id="password" type="password" required placeholder="Lozinka">
+      <button type="submit">Prijavi se</button>
+      <div id="loginMsg" class="msg"></div>
+    </form>
+  </div>
+
+  <div id="appView" class="hidden">
+    <div class="top">
+      <div>
+        <h1>💬 KOMENTARI</h1>
+        <p class="sub">Pregled, moderacija i odgovori na komentare.</p>
+      </div>
+      <button id="logoutBtn">Odjavi se</button>
+    </div>
+    <div class="card">
+      <div class="top">
+        <strong id="count">Komentari</strong>
+        <button id="refreshBtn">↻ Osvježi</button>
+      </div>
+      <div id="adminMsg" class="msg"></div>
+      <div id="comments"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const loginView=document.getElementById('loginView');
+const appView=document.getElementById('appView');
+const loginMsg=document.getElementById('loginMsg');
+const adminMsg=document.getElementById('adminMsg');
+const list=document.getElementById('comments');
+const count=document.getElementById('count');
+
+function msg(el,text,cls=''){
+  el.className='msg '+cls;
+  el.textContent=text||''
+}
+
+function date(v){
+  try{
+    return new Intl.DateTimeFormat('sr-Latn',{dateStyle:'short',timeStyle:'short'}).format(new Date(v))
+  }catch(_){return ''}
+}
+
+async function api(url,options={}){
+  const r=await fetch(url,{
+    ...options,
+    headers:{'Accept':'application/json',...(options.headers||{})}
+  });
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(d.message||'Greška.');
+  return d;
+}
+
+async function login(e){
+  e.preventDefault();
+  msg(loginMsg,'');
+  try{
+    await api('/.netlify/functions/admin-login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        email:document.getElementById('email').value.trim(),
+        password:document.getElementById('password').value
+      })
+    });
+    showApp();
+  }catch(err){
+    msg(loginMsg,err.message,'err')
+  }
+}
+
+document.getElementById('loginForm').addEventListener('submit',login);
+
+function showApp(){
+  loginView.classList.add('hidden');
+  appView.classList.remove('hidden');
+  load()
+}
+
+async function load(){
+  msg(adminMsg,'');
+  try{
+    const d=await api('/.netlify/functions/admin-comments');
+    const comments=d.comments||[];
+    count.textContent=`Komentari: ${comments.length}`;
+    list.innerHTML='';
+    if(!comments.length){
+      list.textContent='Trenutno nema komentara.';
+      return
+    }
+    comments.forEach(render);
+  }catch(err){
+    if(/Nisi prijavljen/i.test(err.message)){
+      appView.classList.add('hidden');
+      loginView.classList.remove('hidden')
+    }
+    msg(adminMsg,err.message,'err');
+  }
+}
+
+function render(c){
+  const el=document.createElement('article');
+  el.className='comment';
+
+  const meta=document.createElement('div');
+  meta.className='meta';
+
+  const name=document.createElement('span');
+  name.className='name';
+  name.textContent=c.nickname+':';
+
+  const dateEl=document.createElement('span');
+  dateEl.className='date';
+  dateEl.textContent=date(c.created_at);
+
+  const status=document.createElement('span');
+  status.className='status';
+  status.textContent=c.status;
+
+  meta.append(name,dateEl,status);
+
+  const post=document.createElement('div');
+  post.className='post';
+  post.textContent='Blog: '+c.post_title+' • '+c.post_key;
+
+  const body=document.createElement('div');
+  body.className='body';
+  body.textContent=c.body;
+
+  const reply=document.createElement('textarea');
+  reply.className='reply';
+  reply.placeholder='Odgovor';
+  reply.maxLength=500;
+  reply.value=c.admin_reply||'';
+
+  const actions=document.createElement('div');
+  actions.className='actions';
+
+  const send=document.createElement('button');
+  send.textContent=c.admin_reply?'Izmijeni odgovor':'↳ Odgovori / Objavi';
+  send.className='ok';
+
+  const approve=document.createElement('button');
+  approve.textContent='✓ Odobri';
+
+  const hide=document.createElement('button');
+  hide.textContent='Sakrij';
+  hide.className='danger';
+
+  const del=document.createElement('button');
+  del.textContent='Obriši';
+  del.className='danger';
+
+  actions.append(send,approve,hide,del);
+
+  async function action(kind){
+    try{
+      [...actions.querySelectorAll('button')].forEach(b=>b.disabled=true);
+
+      await api('/.netlify/functions/admin-comment-action',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          action:kind,
+          postKey:c.post_key,
+          commentId:c.id,
+          reply:reply.value
+        })
+      });
+
+      await load();
+    }catch(err){
+      msg(adminMsg,err.message,'err')
+    }finally{
+      [...actions.querySelectorAll('button')].forEach(b=>b.disabled=false)
+    }
+  }
+
+  send.onclick=()=>action('reply');
+  approve.onclick=()=>action('approve');
+  hide.onclick=()=>action('hide');
+
+  del.onclick=()=>{
+    if(confirm('Obrisati ovaj komentar?')) action('delete')
+  };
+
+  el.append(meta,post,body,reply,actions);
+  list.appendChild(el);
+}
+
+document.getElementById('refreshBtn').onclick=load;
+
+document.getElementById('logoutBtn').onclick=async()=>{
+  try{
+    await api('/.netlify/functions/admin-logout',{method:'POST'});
+    location.reload()
+  }catch(err){
+    msg(adminMsg,err.message,'err')
+  }
+};
+
+(async()=>{
+  try{
+    await api('/.netlify/functions/admin-comments');
+    showApp()
+  }catch(_){}
+})();
+</script>
+</body>
+</html>
