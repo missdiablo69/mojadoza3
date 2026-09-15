@@ -1,0 +1,8 @@
+{
+  "name": "mojadoza3",
+  "private": true,
+  "dependencies": {
+    "@netlify/blobs": "^9.0.0",
+    "@netlify/identity": "^1.0.0"
+  }
+}
