@@ -285,7 +285,12 @@
           <a href="#horoskop" onclick="prikaziZnak('ribe')">Ribe</a>
         </div>
       </div>
-      <a href="#zanimljivosti">Zanimljivosti</a>
+      <div class="dropdown">
+        <a href="#zanimljivosti" class="dropbtn">Zanimljivosti ▾</a>
+        <div class="dropdown-content">
+          <a href="#zanimljivosti">Znakovi</a>
+        </div>
+      </div>
       <a href="#privatna-citanja">Privatna Čitanja</a>
       <button id="audio-btn" onclick="toggleAudio()" class="btn-audio" style="display:none;">🎵 Muzika</button>
     </nav>
@@ -652,10 +657,10 @@
       if (!kontejner) return;
 
       try {
-        // Zanimljivosti se čitaju iz content/zanimljivosti/*.md ili *.json.
+        // Zanimljivosti se čitaju iz content/zanimljivosti/znakovi/*.md ili *.json.
         // Na početku se prikazuju SAMO NASLOVI iz back office polja NASLOV/TITLE.
         // Cijeli tekst se otvara tek kada korisnik klikne na određeni naslov.
-        const files = await fetchGitHubFolder('content/zanimljivosti');
+        const files = await fetchGitHubFolder('content/zanimljivosti/znakovi');
         const cmsFiles = files
           .filter(f => f.type === 'file' && /\.(md|markdown|json)$/i.test(f.name))
           .sort((a, b) => a.name.localeCompare(b.name, undefined, {
