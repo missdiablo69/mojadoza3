@@ -252,6 +252,137 @@
       opacity: .9;
       margin-bottom: 15px;
     }
+
+    /* MOJA DOZA - komentari i brojač posjeta (dodatak, ne mijenja postojeće sekcije) */
+    .mojadoza-comments {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #332a52;
+    }
+    .mojadoza-comments-title {
+      color: var(--accent-color);
+      font-family: var(--font-heading);
+      font-size: 1.05rem;
+      margin: 0 0 14px;
+    }
+    .mojadoza-comment-form {
+      display: grid;
+      gap: 9px;
+      margin-bottom: 18px;
+    }
+    .mojadoza-comment-form input,
+    .mojadoza-comment-form textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #4b3b70;
+      border-radius: 8px;
+      background: #0f0b1d;
+      color: var(--text-color);
+      padding: 10px 12px;
+      font: inherit;
+      outline: none;
+    }
+    .mojadoza-comment-form input:focus,
+    .mojadoza-comment-form textarea:focus {
+      border-color: var(--accent-color);
+    }
+    .mojadoza-comment-form textarea {
+      min-height: 82px;
+      resize: vertical;
+    }
+    .mojadoza-comment-form-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .mojadoza-comment-submit {
+      border: 1px solid var(--accent-color);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--accent-color);
+      padding: 9px 15px;
+      cursor: pointer;
+      font: inherit;
+    }
+    .mojadoza-comment-submit:hover {
+      background: rgba(212, 175, 55, 0.12);
+    }
+    .mojadoza-comment-submit:disabled {
+      opacity: .55;
+      cursor: wait;
+    }
+    .mojadoza-comment-count {
+      font-size: .78rem;
+      opacity: .65;
+    }
+    .mojadoza-comment-msg {
+      min-height: 20px;
+      font-size: .86rem;
+      margin-top: 2px;
+    }
+    .mojadoza-comment-msg.error { color: #ff9f9f; }
+    .mojadoza-comment-msg.ok { color: #bde8c3; }
+    .mojadoza-comment {
+      padding: 12px 0;
+      border-top: 1px solid rgba(75,59,112,.55);
+    }
+    .mojadoza-comment:first-child { border-top: 0; }
+    .mojadoza-comment-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: baseline;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+    .mojadoza-comment-name {
+      color: var(--accent-color);
+      font-weight: 600;
+    }
+    .mojadoza-comment-date {
+      font-size: .74rem;
+      opacity: .55;
+    }
+    .mojadoza-comment-body {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .mojadoza-admin-reply {
+      margin: 9px 0 0 14px;
+      padding-left: 12px;
+      border-left: 2px solid var(--accent-color);
+    }
+    .mojadoza-admin-label {
+      color: var(--accent-color);
+      font-weight: 600;
+      font-size: .9rem;
+      margin-bottom: 3px;
+    }
+    .mojadoza-visit-counter {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 9998;
+      background: rgba(26,21,48,.94);
+      border: 1px solid var(--accent-color);
+      color: var(--text-color);
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: .78rem;
+      box-shadow: 0 5px 20px rgba(0,0,0,.35);
+      backdrop-filter: blur(5px);
+    }
+    .mojadoza-honeypot {
+      position: absolute !important;
+      left: -10000px !important;
+      width: 1px !important;
+      height: 1px !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
   </style>
 
   <script>
@@ -963,6 +1094,7 @@
               opis,
               slika,
               tekst: body || opis,
+              fileName: file.name,
               id: `blog-${i}`
             });
           } catch (fileError) {
@@ -1053,6 +1185,12 @@
           }
           sadrzaj.appendChild(tekst);
 
+          // Dodatak: komentari ispod teksta bloga. Postojeći blog markup ostaje isti.
+          dodajKomentareZaBlog(sadrzaj, {
+            postKey: `blog:${String(post.fileName || post.naslov || '').trim()}`,
+            postTitle: post.naslov
+          });
+
           dugme.addEventListener('click', () => {
             const otvoren = item.classList.contains('otvoren');
 
@@ -1098,6 +1236,260 @@
         }
       }
     }
+
+
+    // ------------------------------------------------------------
+    // MOJA DOZA - NETLIFY KOMENTARI + BROJAČ POSJETA
+    // Ovo je potpuno odvojeno od postojećeg CMS/blog sistema.
+    // ------------------------------------------------------------
+    const MD_COMMENT_MAX = 200;
+    const MD_NICK_MAX = 40;
+
+    function mdEsc(text) {
+      return String(text ?? '');
+    }
+
+    function mdFormatDate(value) {
+      try {
+        return new Intl.DateTimeFormat('sr-Latn', {
+          dateStyle: 'short',
+          timeStyle: 'short'
+        }).format(new Date(value));
+      } catch (_) {
+        return '';
+      }
+    }
+
+    function napraviKomentarEl(c) {
+      const wrap = document.createElement('div');
+      wrap.className = 'mojadoza-comment';
+
+      const head = document.createElement('div');
+      head.className = 'mojadoza-comment-head';
+
+      const name = document.createElement('span');
+      name.className = 'mojadoza-comment-name';
+      name.textContent = `${mdEsc(c.nickname)}:`;
+
+      const date = document.createElement('span');
+      date.className = 'mojadoza-comment-date';
+      date.textContent = mdFormatDate(c.created_at);
+
+      head.append(name, date);
+
+      const body = document.createElement('div');
+      body.className = 'mojadoza-comment-body';
+      body.textContent = c.body || '';
+
+      wrap.append(head, body);
+
+      if (c.admin_reply) {
+        const reply = document.createElement('div');
+        reply.className = 'mojadoza-admin-reply';
+
+        const label = document.createElement('div');
+        label.className = 'mojadoza-admin-label';
+        label.textContent = '↳ Moja Doza:';
+
+        const replyBody = document.createElement('div');
+        replyBody.className = 'mojadoza-comment-body';
+        replyBody.textContent = c.admin_reply;
+
+        reply.append(label, replyBody);
+        wrap.appendChild(reply);
+      }
+
+      return wrap;
+    }
+
+    async function ucitajKomentareZaBlog(listEl, postKey) {
+      try {
+        const res = await fetch('/.netlify/functions/comments?postKey=' + encodeURIComponent(postKey), {
+          cache: 'no-store',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (!res.ok) throw new Error('Komentari nisu dostupni.');
+        const data = await res.json();
+
+        listEl.innerHTML = '';
+        const comments = Array.isArray(data.comments) ? data.comments : [];
+
+        if (!comments.length) {
+          const empty = document.createElement('div');
+          empty.className = 'mojadoza-comment-date';
+          empty.textContent = 'Još nema komentara. Budi prvi/a. ✨';
+          listEl.appendChild(empty);
+          return;
+        }
+
+        comments.forEach(c => listEl.appendChild(napraviKomentarEl(c)));
+      } catch (e) {
+        console.warn('Komentari nisu učitani:', e);
+        listEl.innerHTML = '';
+      }
+    }
+
+    function dodajKomentareZaBlog(parent, post) {
+      const box = document.createElement('section');
+      box.className = 'mojadoza-comments';
+      box.setAttribute('aria-label', 'Komentari');
+
+      const title = document.createElement('h3');
+      title.className = 'mojadoza-comments-title';
+      title.textContent = 'Ostavi komentar';
+
+      const form = document.createElement('form');
+      form.className = 'mojadoza-comment-form';
+      form.autocomplete = 'off';
+
+      const nick = document.createElement('input');
+      nick.type = 'text';
+      nick.name = 'nickname';
+      nick.maxLength = MD_NICK_MAX;
+      nick.required = true;
+      nick.placeholder = 'Nadimak';
+      nick.setAttribute('aria-label', 'Nadimak');
+
+      const body = document.createElement('textarea');
+      body.name = 'body';
+      body.maxLength = MD_COMMENT_MAX;
+      body.required = true;
+      body.placeholder = 'Napiši komentar...';
+      body.setAttribute('aria-label', 'Komentar');
+
+      const honeypot = document.createElement('input');
+      honeypot.type = 'text';
+      honeypot.name = 'website';
+      honeypot.tabIndex = -1;
+      honeypot.autocomplete = 'off';
+      honeypot.className = 'mojadoza-honeypot';
+      honeypot.setAttribute('aria-hidden', 'true');
+
+      const row = document.createElement('div');
+      row.className = 'mojadoza-comment-form-row';
+
+      const count = document.createElement('span');
+      count.className = 'mojadoza-comment-count';
+      count.textContent = `0 / ${MD_COMMENT_MAX}`;
+
+      const submit = document.createElement('button');
+      submit.type = 'submit';
+      submit.className = 'mojadoza-comment-submit';
+      submit.textContent = 'Objavi komentar';
+
+      row.append(count, submit);
+
+      const msg = document.createElement('div');
+      msg.className = 'mojadoza-comment-msg';
+      msg.setAttribute('role', 'status');
+
+      form.append(nick, body, honeypot, row, msg);
+
+      const list = document.createElement('div');
+      list.className = 'mojadoza-comment-list';
+
+      body.addEventListener('input', () => {
+        count.textContent = `${body.value.length} / ${MD_COMMENT_MAX}`;
+      });
+
+      body.addEventListener('keydown', event => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          form.requestSubmit();
+        }
+      });
+
+      form.addEventListener('submit', async event => {
+        event.preventDefault();
+        msg.className = 'mojadoza-comment-msg';
+        msg.textContent = '';
+
+        const nickname = nick.value.trim();
+        const text = body.value.trim();
+
+        if (!nickname) {
+          msg.classList.add('error');
+          msg.textContent = 'Upiši nadimak.';
+          nick.focus();
+          return;
+        }
+        if (!text) {
+          msg.classList.add('error');
+          msg.textContent = 'Upiši komentar.';
+          body.focus();
+          return;
+        }
+        if (nickname.length > MD_NICK_MAX || text.length > MD_COMMENT_MAX) {
+          msg.classList.add('error');
+          msg.textContent = `Komentar može imati najviše ${MD_COMMENT_MAX} znakova.`;
+          return;
+        }
+
+        submit.disabled = true;
+        submit.textContent = 'Objavljujem...';
+
+        try {
+          const res = await fetch('/.netlify/functions/comments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+              postKey: post.postKey,
+              postTitle: post.postTitle,
+              nickname,
+              body: text,
+              website: honeypot.value
+            })
+          });
+
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.message || 'Komentar nije moguće objaviti.');
+
+          body.value = '';
+          count.textContent = `0 / ${MD_COMMENT_MAX}`;
+          msg.classList.add('ok');
+          msg.textContent = 'Komentar je objavljen. ❤️';
+          await ucitajKomentareZaBlog(list, post.postKey);
+        } catch (e) {
+          msg.classList.add('error');
+          msg.textContent = e.message || 'Došlo je do greške.';
+        } finally {
+          submit.disabled = false;
+          submit.textContent = 'Objavi komentar';
+        }
+      });
+
+      box.append(title, form, list);
+      parent.appendChild(box);
+      ucitajKomentareZaBlog(list, post.postKey);
+    }
+
+    async function ucitajBrojacPosjeta() {
+      try {
+        const countedKey = 'mojadoza_visit_counted_v1';
+        const shouldCount = !sessionStorage.getItem(countedKey);
+
+        const url = shouldCount
+          ? '/.netlify/functions/visits?count=1'
+          : '/.netlify/functions/visits';
+
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+
+        if (shouldCount) {
+          sessionStorage.setItem(countedKey, '1');
+        }
+
+        const el = document.createElement('div');
+        el.className = 'mojadoza-visit-counter';
+        el.textContent = `👁️ Posjete: ${Number(data.total || 0).toLocaleString('sr-Latn-RS')}`;
+        document.body.appendChild(el);
+      } catch (e) {
+        console.warn('Brojač posjeta nije dostupan:', e);
+      }
+    }
+
+    ucitajBrojacPosjeta();
 
     async function ucitajPrivatnaCitanja() {
       try {
