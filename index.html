@@ -200,6 +200,58 @@
     }
     .dropdown-content a:hover { background-color: #251d42; color: var(--accent-color); }
     .dropdown:hover .dropdown-content { display: block; }
+
+    /* BLOG */
+    .blog-lista {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .blog-item {
+      background: var(--card-bg);
+      border: 1px solid var(--accent-color);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .blog-naslov-btn {
+      width: 100%;
+      padding: 18px 20px;
+      background: transparent;
+      color: var(--accent-color);
+      border: none;
+      text-align: left;
+      font-size: 1.15rem;
+      font-family: var(--font-heading);
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .blog-naslov-btn:hover { background: rgba(212, 175, 55, 0.15); }
+    .blog-sadrzaj {
+      display: none;
+      padding: 20px;
+      border-top: 1px solid #332a52;
+      background-color: rgba(13, 10, 26, 0.5);
+    }
+    .blog-item.otvoren .blog-sadrzaj { display: block; }
+    .blog-slika {
+      display: block;
+      width: 100%;
+      max-height: 480px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin: 0 auto 18px;
+      border: 1px solid #332a52;
+    }
+    .blog-opis {
+      color: var(--text-color);
+      opacity: .9;
+      margin-bottom: 15px;
+    }
   </style>
 
   <script>
@@ -291,6 +343,12 @@
           <a href="#zanimljivosti">Učitavanje...</a>
         </div>
       </div>
+      <div class="dropdown" id="blog-dropdown">
+        <a href="#blog" class="dropbtn">Blog ▾</a>
+        <div class="dropdown-content" id="blog-dropdown-content">
+          <a href="#blog">Učitavanje...</a>
+        </div>
+      </div>
       <a href="#privatna-citanja">Privatna Čitanja</a>
       <button id="audio-btn" onclick="toggleAudio()" class="btn-audio" style="display:none;">🎵 Muzika</button>
     </nav>
@@ -337,6 +395,14 @@
       <h2>Zanimljivosti & Tekstovi</h2>
       <div class="grid-3" id="sekcija-zanimljivosti">
         <p>Učitavanje tekstova...</p>
+      </div>
+    </section>
+
+    <!-- Sekcija: Blog -->
+    <section id="blog">
+      <h2>Blog</h2>
+      <div class="blog-lista" id="sekcija-blog">
+        <p>Učitavanje blog objava...</p>
       </div>
     </section>
 
@@ -822,6 +888,217 @@
       }
     }
 
+
+    // ------------------------------------------------------------
+    // BLOG LOADER
+    // Čita objave iz content/blog/
+    // Decap CMS može čuvati naslov, opis, sliku i Markdown sadržaj.
+    // ------------------------------------------------------------
+    async function ucitajBlog() {
+      const kontejner = document.getElementById('sekcija-blog');
+      const dropdown = document.getElementById('blog-dropdown-content');
+      if (!kontejner) return;
+
+      try {
+        const files = await fetchGitHubFolder('content/blog');
+        const cmsFiles = files
+          .filter(f => f.type === 'file' && /\.(md|markdown|json)$/i.test(f.name))
+          .sort((a, b) => a.name.localeCompare(b.name, undefined, {
+            numeric: true,
+            sensitivity: 'base'
+          }));
+
+        if (!cmsFiles.length) {
+          kontejner.innerHTML = '<p>Trenutno nema objavljenih blog tekstova.</p>';
+          if (dropdown) dropdown.innerHTML = '<a href="#blog">Trenutno nema objava</a>';
+          return;
+        }
+
+        const posts = [];
+
+        for (let i = 0; i < cmsFiles.length; i++) {
+          const file = cmsFiles[i];
+
+          try {
+            const raw = await fetchText(file.download_url || file.html_url);
+            const data = /\.json$/i.test(file.name)
+              ? JSON.parse(raw)
+              : parseCmsMarkdown(raw);
+
+            const meta = (data && data.data && typeof data.data === 'object')
+              ? data.data
+              : data;
+
+            let naslov = normalizujTekst(
+              meta?.title ?? meta?.naslov ?? ''
+            ).trim();
+
+            if (!naslov) {
+              const headingMatch = String(data?.content || '').match(/^#{1,2}\s+(.+)$/m);
+              if (headingMatch) naslov = headingMatch[1].trim();
+            }
+
+            if (!naslov) {
+              naslov = file.name
+                .replace(/\.(md|markdown|json)$/i, '')
+                .replace(/[-_]+/g, ' ')
+                .trim();
+            }
+
+            const opis = normalizujTekst(
+              meta?.description ?? meta?.opis ?? ''
+            ).trim();
+
+            const slika = bezbjedanUrl(
+              meta?.image ?? meta?.slika ?? meta?.featured_image ?? '',
+              'image'
+            );
+
+            const body = normalizujTekst(
+              meta?.body ?? meta?.tekst ?? meta?.content ?? data?.content ?? ''
+            ).trim();
+
+            posts.push({
+              naslov,
+              opis,
+              slika,
+              tekst: body || opis,
+              id: `blog-${i}`
+            });
+          } catch (fileError) {
+            console.warn(`Nije moguće učitati blog ${file.name}:`, fileError);
+          }
+        }
+
+        if (!posts.length) {
+          kontejner.innerHTML = '<p>Trenutno nema objavljenih blog tekstova.</p>';
+          if (dropdown) dropdown.innerHTML = '<a href="#blog">Trenutno nema objava</a>';
+          return;
+        }
+
+        kontejner.innerHTML = '';
+
+        if (dropdown) {
+          dropdown.innerHTML = '';
+
+          posts.forEach(post => {
+            const link = document.createElement('a');
+            link.href = '#blog';
+            link.textContent = post.naslov;
+            link.addEventListener('click', event => {
+              event.preventDefault();
+
+              const target = document.getElementById(post.id);
+              if (target) {
+                target.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'start'
+                });
+
+                const button = target.querySelector('.blog-naslov-btn');
+                if (button) button.click();
+              }
+            });
+
+            dropdown.appendChild(link);
+          });
+        }
+
+        posts.forEach(post => {
+          const item = document.createElement('article');
+          item.className = 'blog-item';
+          item.id = post.id;
+
+          const dugme = document.createElement('button');
+          dugme.type = 'button';
+          dugme.className = 'blog-naslov-btn';
+          dugme.setAttribute('aria-expanded', 'false');
+
+          const naslovSpan = document.createElement('span');
+          naslovSpan.textContent = post.naslov;
+
+          const strelicaSpan = document.createElement('span');
+          strelicaSpan.className = 'strelica';
+          strelicaSpan.textContent = '▼';
+          strelicaSpan.setAttribute('aria-hidden', 'true');
+
+          dugme.appendChild(naslovSpan);
+          dugme.appendChild(strelicaSpan);
+
+          const sadrzaj = document.createElement('div');
+          sadrzaj.className = 'blog-sadrzaj';
+          sadrzaj.setAttribute('aria-hidden', 'true');
+
+          if (post.slika) {
+            const img = document.createElement('img');
+            img.className = 'blog-slika';
+            img.src = post.slika;
+            img.alt = post.naslov;
+            img.loading = 'lazy';
+            sadrzaj.appendChild(img);
+          }
+
+          if (post.opis) {
+            const opis = document.createElement('div');
+            opis.className = 'blog-opis';
+            renderujTekst(opis, post.opis);
+            sadrzaj.appendChild(opis);
+          }
+
+          const tekst = document.createElement('div');
+          if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+            tekst.innerHTML = sanitizujHtml(marked.parse(post.tekst));
+          } else {
+            tekst.textContent = post.tekst;
+          }
+          sadrzaj.appendChild(tekst);
+
+          dugme.addEventListener('click', () => {
+            const otvoren = item.classList.contains('otvoren');
+
+            kontejner.querySelectorAll('.blog-item.otvoren').forEach(other => {
+              if (other === item) return;
+
+              other.classList.remove('otvoren');
+
+              const otherButton = other.querySelector('.blog-naslov-btn');
+              const otherArrow = other.querySelector('.strelica');
+              const otherContent = other.querySelector('.blog-sadrzaj');
+
+              if (otherButton) otherButton.setAttribute('aria-expanded', 'false');
+              if (otherArrow) otherArrow.textContent = '▼';
+              if (otherContent) otherContent.setAttribute('aria-hidden', 'true');
+            });
+
+            if (!otvoren) {
+              item.classList.add('otvoren');
+              dugme.setAttribute('aria-expanded', 'true');
+              strelicaSpan.textContent = '▲';
+              sadrzaj.setAttribute('aria-hidden', 'false');
+            } else {
+              item.classList.remove('otvoren');
+              dugme.setAttribute('aria-expanded', 'false');
+              strelicaSpan.textContent = '▼';
+              sadrzaj.setAttribute('aria-hidden', 'true');
+            }
+          });
+
+          item.appendChild(dugme);
+          item.appendChild(sadrzaj);
+          kontejner.appendChild(item);
+        });
+
+        zastitiLinkove(kontejner);
+
+      } catch (e) {
+        console.error('Greška pri učitavanju bloga:', e);
+        kontejner.innerHTML = '<p>Sadržaj bloga trenutno nije dostupan.</p>';
+        if (dropdown) {
+          dropdown.innerHTML = '<a href="#blog">Sadržaj trenutno nije dostupan</a>';
+        }
+      }
+    }
+
     async function ucitajPrivatnaCitanja() {
       try {
         const dataP = await fetchJson('privatna-citanja.json');
@@ -855,6 +1132,7 @@
         ucitajIzgled(),
         ucitajHoroskop(),
         ucitajZanimljivosti(),
+        ucitajBlog(),
         ucitajPrivatnaCitanja()
       ]);
 
