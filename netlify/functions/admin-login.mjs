@@ -1,4 +1,8 @@
-import { login } from "@netlify/identity";
+import {
+  login,
+  verifyRequestOrigin
+} from "@netlify/identity";
+
 import { json } from "./_common.mjs";
 
 export default async function handler(request) {
@@ -9,6 +13,8 @@ export default async function handler(request) {
         405
       );
     }
+
+    verifyRequestOrigin(request);
 
     const data = await request.json().catch(() => null);
 
@@ -29,10 +35,7 @@ export default async function handler(request) {
       );
     }
 
-    const user = await login({
-      email,
-      password
-    });
+    const user = await login(email, password);
 
     const roles = Array.isArray(user?.roles)
       ? user.roles
