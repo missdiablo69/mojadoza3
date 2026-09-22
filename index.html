@@ -922,32 +922,65 @@
     }
 
     async function ucitajAnalize() {
+      const praznaPoruka = '<p>Analiza trenutno nije dostupna.</p>';
+
       try {
-        const rezultat = await ucitajCmsDokument('content/analize', 'Analize');
-        const data = rezultat.data?.data && typeof rezultat.data.data === 'object'
-          ? rezultat.data.data
-          : rezultat.data;
-        const cmsContent = rezultat.data?.content || '';
+        // ANALIZE čitamo direktno iz istog GitHub repozitorijuma koji koristi Back Office.
+        // Prvo uzimamo spisak fajlova iz content/analize/, a zatim stvarni .md fajl.
+        // Ovo je namjerno odvojeno od horoskopa da se postojeći sadržaj ne mijenja.
+        const files = await fetchGitHubFolder('content/analize');
+        const cmsFiles = files
+          .filter(f => f && f.type === 'file' && /\.(md|markdown|json)$/i.test(f.name));
+
+        if (!cmsFiles.length) {
+          throw new Error('Back Office folder content/analize je prazan ili nije pronađen.');
+        }
+
+        const latest = izaberiNajnovijiCmsFajl(cmsFiles);
+        if (!latest) throw new Error('Nije pronađen nijedan ANALIZE dokument.');
+
+        // GitHub API download_url je direktan sadržaj fajla koji je Back Office sačuvao.
+        const raw = await fetchText(
+          latest.download_url ||
+          `https://raw.githubusercontent.com/missdiablo69/mojadoza3/main/content/analize/${encodeURIComponent(latest.name)}`
+        );
+
+        let parsed;
+        if (/\.json$/i.test(latest.name)) {
+          parsed = JSON.parse(raw);
+        } else {
+          parsed = parseCmsMarkdown(raw);
+        }
+
+        // parseCmsMarkdown vraća { data: {...}, content: '...' }.
+        // Decap CMS je u našem fajlu sačuvao svaki znak kao YAML polje:
+        // ovan, bik, blizanci ... Zato uzimamo parsed.data, ne parsed.
+        const data = parsed && parsed.data && typeof parsed.data === 'object'
+          ? parsed.data
+          : (parsed && typeof parsed === 'object' ? parsed : {});
+
+        console.log('ANALIZE učitane iz Back Office-a:', latest.name, Object.keys(data));
 
         ZNACI.forEach(znak => {
           const el = document.getElementById(`analiza-${znak}`);
           if (!el) return;
 
-          const tekst = nadjiZnak(data, znak);
+          const vrijednost = nadjiZnak(data, znak);
+          const tekst = normalizujTekst(vrijednost).trim();
 
           if (tekst) {
             renderujTekst(el, tekst);
-          } else if (data.body || data.content || cmsContent) {
-            renderujTekst(el, data.body || data.content || cmsContent);
           } else {
-            el.innerHTML = '<p>Analiza trenutno nije dostupna.</p>';
+            // Vodolija i Ribe su namjerno ostavljeni kao prazna polja dok ih
+            // korisnica ne unese u Back Office. Ostalih 10 znakova prikazuju sadržaj.
+            el.innerHTML = praznaPoruka;
           }
         });
       } catch (e) {
-        console.error('Greška pri učitavanju analiza:', e);
+        console.error('Greška pri učitavanju analiza iz Back Office-a:', e);
         ZNACI.forEach(znak => {
           const el = document.getElementById(`analiza-${znak}`);
-          if (el) el.innerHTML = '<p>Analiza trenutno nije dostupna.</p>';
+          if (el) el.innerHTML = praznaPoruka;
         });
       }
     }
