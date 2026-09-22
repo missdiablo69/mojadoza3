@@ -201,6 +201,9 @@
     .dropdown-content a:hover { background-color: #251d42; color: var(--accent-color); }
     .dropdown:hover .dropdown-content { display: block; }
 
+    /* ANALIZE koristi isti vizuelni sistem kao Mesečni Horoskop. */
+    .analiza-kartica { min-height: 120px; }
+
     /* BLOG */
     .blog-lista {
       display: flex;
@@ -468,6 +471,23 @@
           <a href="#horoskop" onclick="prikaziZnak('ribe')">Ribe</a>
         </div>
       </div>
+      <div class="dropdown">
+        <a href="#analize" class="dropbtn">ANALIZE ▾</a>
+        <div class="dropdown-content">
+          <a href="#analize" onclick="prikaziAnalizu('ovan')">Ovan</a>
+          <a href="#analize" onclick="prikaziAnalizu('bik')">Bik</a>
+          <a href="#analize" onclick="prikaziAnalizu('blizanci')">Blizanci</a>
+          <a href="#analize" onclick="prikaziAnalizu('rak')">Rak</a>
+          <a href="#analize" onclick="prikaziAnalizu('lav')">Lav</a>
+          <a href="#analize" onclick="prikaziAnalizu('devica')">Devica</a>
+          <a href="#analize" onclick="prikaziAnalizu('vaga')">Vaga</a>
+          <a href="#analize" onclick="prikaziAnalizu('skorpija')">Škorpija</a>
+          <a href="#analize" onclick="prikaziAnalizu('strelac')">Strelac</a>
+          <a href="#analize" onclick="prikaziAnalizu('jarac')">Jarac</a>
+          <a href="#analize" onclick="prikaziAnalizu('vodolija')">Vodolija</a>
+          <a href="#analize" onclick="prikaziAnalizu('ribe')">Ribe</a>
+        </div>
+      </div>
       <div class="dropdown" id="zanimljivosti-dropdown">
         <a href="#zanimljivosti" class="dropbtn">Zanimljivosti ▾</a>
         <div class="dropdown-content" id="zanimljivosti-dropdown-content">
@@ -518,6 +538,25 @@
         <div class="card-item horoskop-kartica" id="kartica-jarac"><h3>Jarac</h3><div id="horoskop-jarac"><p>Učitavanje...</p></div></div>
         <div class="card-item horoskop-kartica" id="kartica-vodolija"><h3>Vodolija</h3><div id="horoskop-vodolija"><p>Učitavanje...</p></div></div>
         <div class="card-item horoskop-kartica" id="kartica-ribe"><h3>Ribe</h3><div id="horoskop-ribe"><p>Učitavanje...</p></div></div>
+      </div>
+    </section>
+
+    <!-- Sekcija: ANALIZE -->
+    <section id="analize">
+      <h2>ANALIZE</h2>
+      <div class="grid-3">
+        <div class="card-item analiza-kartica" id="analiza-kartica-ovan"><h3>Ovan</h3><div id="analiza-ovan"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-bik"><h3>Bik</h3><div id="analiza-bik"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-blizanci"><h3>Blizanci</h3><div id="analiza-blizanci"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-rak"><h3>Rak</h3><div id="analiza-rak"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-lav"><h3>Lav</h3><div id="analiza-lav"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-devica"><h3>Devica</h3><div id="analiza-devica"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-vaga"><h3>Vaga</h3><div id="analiza-vaga"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-skorpija"><h3>Škorpija</h3><div id="analiza-skorpija"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-strelac"><h3>Strelac</h3><div id="analiza-strelac"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-jarac"><h3>Jarac</h3><div id="analiza-jarac"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-vodolija"><h3>Vodolija</h3><div id="analiza-vodolija"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-ribe"><h3>Ribe</h3><div id="analiza-ribe"><p>Učitavanje...</p></div></div>
       </div>
     </section>
 
@@ -795,56 +834,111 @@
       return { data: data || {}, content: match[2] || '' };
     }
 
-    async function ucitajHoroskop() {
-      const znaci = [
-        'ovan', 'bik', 'blizanci', 'rak', 'lav', 'devica',
-        'vaga', 'skorpija', 'strelac', 'jarac', 'vodolija', 'ribe'
-      ];
+    const ZNACI = [
+      'ovan', 'bik', 'blizanci', 'rak', 'lav', 'devica',
+      'vaga', 'skorpija', 'strelac', 'jarac', 'vodolija', 'ribe'
+    ];
 
-      try {
-        const files = await fetchGitHubFolder('content/horoskop');
-        const cmsFiles = files
-          .filter(f => f.type === 'file' && /\.(md|markdown|json)$/i.test(f.name))
-          .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+    // Biramo najnoviji CMS dokument po datumu iz imena fajla.
+    // Ako su datumi isti, posljednji naziv po sortiranju je pobjednik.
+    function datumIzNazivaFajla(name) {
+      const m = String(name || '').match(/(20\d{2})[-_](\d{1,2})[-_](\d{1,2})/);
+      if (!m) return 0;
+      const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+      return Number.isNaN(d.getTime()) ? 0 : d.getTime();
+    }
 
-        if (!cmsFiles.length) throw new Error('Nema horoskopskih fajlova.');
+    function izaberiNajnovijiCmsFajl(files) {
+      return files
+        .slice()
+        .sort((a, b) => {
+          const da = datumIzNazivaFajla(a.name);
+          const db = datumIzNazivaFajla(b.name);
+          if (da !== db) return da - db;
+          return String(a.name).localeCompare(String(b.name), undefined, {
+            numeric: true,
+            sensitivity: 'base'
+          });
+        })
+        .pop();
+    }
 
-        const latest = cmsFiles[cmsFiles.length - 1];
-        const raw = await fetchText(latest.download_url || latest.html_url);
+    async function ucitajCmsDokument(folder, tip) {
+      const files = await fetchGitHubFolder(folder);
+      const cmsFiles = files
+        .filter(f => f.type === 'file' && /\.(md|markdown|json)$/i.test(f.name));
 
-        let data;
-        if (/\.json$/i.test(latest.name)) {
-          try {
-            data = JSON.parse(raw);
-          } catch (e) {
-            throw new Error(`Horoskop JSON nije ispravan: ${latest.name}`);
-          }
-        } else {
-          data = parseCmsMarkdown(raw);
+      if (!cmsFiles.length) {
+        throw new Error(`Nema ${tip} fajlova u ${folder}.`);
+      }
+
+      const latest = izaberiNajnovijiCmsFajl(cmsFiles);
+      const raw = await fetchText(latest.download_url || latest.html_url);
+
+      let data;
+      if (/\.json$/i.test(latest.name)) {
+        try {
+          data = JSON.parse(raw);
+        } catch (e) {
+          throw new Error(`${tip} JSON nije ispravan: ${latest.name}`);
         }
+      } else {
+        data = parseCmsMarkdown(raw);
+      }
 
-        znaci.forEach(znak => {
+      return { data, file: latest };
+    }
+
+    async function ucitajHoroskop() {
+      try {
+        const { data } = await ucitajCmsDokument('content/horoskop', 'Horoskop');
+
+        ZNACI.forEach(znak => {
           const el = document.getElementById(`horoskop-${znak}`);
           if (!el) return;
 
-          // Decap konfiguracija ima posebno polje za svaki znak.
-          const tekst = data[znak];
+          const tekst = nadjiZnak(data, znak);
 
           if (tekst) {
             renderujTekst(el, tekst);
           } else if (data.body || data.content) {
-            // Fallback za dokumente koji imaju samo jedno opšte tijelo.
             renderujTekst(el, data.body || data.content);
           } else {
             el.innerHTML = '<p>Sadržaj trenutno nije dostupan.</p>';
           }
         });
-
       } catch (e) {
         console.error('Greška pri učitavanju horoskopa:', e);
-        znaci.forEach(znak => {
+        ZNACI.forEach(znak => {
           const el = document.getElementById(`horoskop-${znak}`);
           if (el) el.innerHTML = '<p>Sadržaj trenutno nije dostupan.</p>';
+        });
+      }
+    }
+
+    async function ucitajAnalize() {
+      try {
+        const { data } = await ucitajCmsDokument('content/analize', 'Analize');
+
+        ZNACI.forEach(znak => {
+          const el = document.getElementById(`analiza-${znak}`);
+          if (!el) return;
+
+          const tekst = nadjiZnak(data, znak);
+
+          if (tekst) {
+            renderujTekst(el, tekst);
+          } else if (data.body || data.content) {
+            renderujTekst(el, data.body || data.content);
+          } else {
+            el.innerHTML = '<p>Analiza trenutno nije dostupna.</p>';
+          }
+        });
+      } catch (e) {
+        console.error('Greška pri učitavanju analiza:', e);
+        ZNACI.forEach(znak => {
+          const el = document.getElementById(`analiza-${znak}`);
+          if (el) el.innerHTML = '<p>Analiza trenutno nije dostupna.</p>';
         });
       }
     }
@@ -1523,6 +1617,7 @@
       await Promise.allSettled([
         ucitajIzgled(),
         ucitajHoroskop(),
+        ucitajAnalize(),
         ucitajZanimljivosti(),
         ucitajBlog(),
         ucitajPrivatnaCitanja()
@@ -1535,6 +1630,13 @@
       const sveKartice = document.querySelectorAll('.horoskop-kartica');
       sveKartice.forEach(k => k.style.display = 'none');
       const izabrana = document.getElementById(`kartica-${znakId}`);
+      if (izabrana) izabrana.style.display = 'block';
+    }
+
+    function prikaziAnalizu(znakId) {
+      const sveKartice = document.querySelectorAll('.analiza-kartica');
+      sveKartice.forEach(k => k.style.display = 'none');
+      const izabrana = document.getElementById(`analiza-kartica-${znakId}`);
       if (izabrana) izabrana.style.display = 'block';
     }
 
