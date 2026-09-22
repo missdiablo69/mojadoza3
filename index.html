@@ -8,6 +8,7 @@
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="X-Frame-Options" content="DENY">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.3.0/dist/purify.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
   <title>Moja Doza - Tarot & Mesečni Horoskop</title>
@@ -891,7 +892,11 @@
 
     async function ucitajHoroskop() {
       try {
-        const { data } = await ucitajCmsDokument('content/horoskop', 'Horoskop');
+        const rezultat = await ucitajCmsDokument('content/horoskop', 'Horoskop');
+        const data = rezultat.data?.data && typeof rezultat.data.data === 'object'
+          ? rezultat.data.data
+          : rezultat.data;
+        const cmsContent = rezultat.data?.content || '';
 
         ZNACI.forEach(znak => {
           const el = document.getElementById(`horoskop-${znak}`);
@@ -901,8 +906,8 @@
 
           if (tekst) {
             renderujTekst(el, tekst);
-          } else if (data.body || data.content) {
-            renderujTekst(el, data.body || data.content);
+          } else if (data.body || data.content || cmsContent) {
+            renderujTekst(el, data.body || data.content || cmsContent);
           } else {
             el.innerHTML = '<p>Sadržaj trenutno nije dostupan.</p>';
           }
@@ -918,7 +923,11 @@
 
     async function ucitajAnalize() {
       try {
-        const { data } = await ucitajCmsDokument('content/analize', 'Analize');
+        const rezultat = await ucitajCmsDokument('content/analize', 'Analize');
+        const data = rezultat.data?.data && typeof rezultat.data.data === 'object'
+          ? rezultat.data.data
+          : rezultat.data;
+        const cmsContent = rezultat.data?.content || '';
 
         ZNACI.forEach(znak => {
           const el = document.getElementById(`analiza-${znak}`);
@@ -928,8 +937,8 @@
 
           if (tekst) {
             renderujTekst(el, tekst);
-          } else if (data.body || data.content) {
-            renderujTekst(el, data.body || data.content);
+          } else if (data.body || data.content || cmsContent) {
+            renderujTekst(el, data.body || data.content || cmsContent);
           } else {
             el.innerHTML = '<p>Analiza trenutno nije dostupna.</p>';
           }
