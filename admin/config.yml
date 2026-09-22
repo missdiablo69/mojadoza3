@@ -37,6 +37,26 @@ collections:
       - { label: "Vodolija", name: "vodolija", widget: "markdown", required: false }
       - { label: "Ribe", name: "ribe", widget: "markdown", required: false }
 
+  - name: "analize"
+    label: "ANALIZE"
+    folder: "content/analize"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-analiza"
+    fields:
+      - { label: "Naslov", name: "title", widget: "string" }
+      - { label: "Ovan", name: "ovan", widget: "markdown", required: false }
+      - { label: "Bik", name: "bik", widget: "markdown", required: false }
+      - { label: "Blizanci", name: "blizanci", widget: "markdown", required: false }
+      - { label: "Rak", name: "rak", widget: "markdown", required: false }
+      - { label: "Lav", name: "lav", widget: "markdown", required: false }
+      - { label: "Devica", name: "devica", widget: "markdown", required: false }
+      - { label: "Vaga", name: "vaga", widget: "markdown", required: false }
+      - { label: "Škorpija", name: "skorpija", widget: "markdown", required: false }
+      - { label: "Strelac", name: "strelac", widget: "markdown", required: false }
+      - { label: "Jarac", name: "jarac", widget: "markdown", required: false }
+      - { label: "Vodolija", name: "vodolija", widget: "markdown", required: false }
+      - { label: "Ribe", name: "ribe", widget: "markdown", required: false }
+
   - name: "zanimljivosti"
     label: "Zanimljivosti & Tekstovi"
     folder: "content/zanimljivosti"
