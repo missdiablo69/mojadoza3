@@ -238,5 +238,14 @@ document.getElementById('logoutBtn').onclick=async()=>{
   }catch(_){}
 })();
 </script>
+<script type="module">
+  // Netlify Identity: obradi confirmation / invite / OAuth / recovery tokene
+  // prije provjere postojeće admin sesije.
+  import { handleAuthCallback } from "https://cdn.jsdelivr.net/npm/@netlify/identity@2.0.0/+esm";
+
+  handleAuthCallback().catch((error) => {
+    console.error("Netlify Identity callback error:", error);
+  });
+</script>
 </body>
 </html>
