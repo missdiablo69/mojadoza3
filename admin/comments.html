@@ -27,12 +27,10 @@
   <div id="loginView" class="card login">
     <h1>💬 KOMENTARI</h1>
     <p class="sub">Moja Doza Back Office</p>
-    <form id="loginForm" class="grid">
-      <input id="email" type="email" required placeholder="Admin email">
-      <input id="password" type="password" required placeholder="Lozinka">
-      <button type="submit">Prijavi se</button>
+    <div class="grid">
+      <button id="githubLoginBtn" type="button">Prijavi se preko GitHub-a</button>
       <div id="loginMsg" class="msg"></div>
-    </form>
+    </div>
   </div>
 
   <div id="appView" class="hidden">
@@ -83,25 +81,17 @@ async function api(url,options={}){
   return d;
 }
 
-async function login(e){
-  e.preventDefault();
+async function githubLogin(){
   msg(loginMsg,'');
   try{
-    await api('/.netlify/functions/admin-login',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        email:document.getElementById('email').value.trim(),
-        password:document.getElementById('password').value
-      })
-    });
-    showApp();
+    await window.oauthLogin('github');
   }catch(err){
-    msg(loginMsg,err.message,'err')
+    msg(loginMsg,err.message||'GitHub prijava nije uspjela.','err');
   }
 }
 
-document.getElementById('loginForm').addEventListener('submit',login);
+document.getElementById('githubLoginBtn').addEventListener('click',githubLogin);
+
 
 function showApp(){
   loginView.classList.add('hidden');
@@ -224,10 +214,11 @@ document.getElementById('refreshBtn').onclick=load;
 
 document.getElementById('logoutBtn').onclick=async()=>{
   try{
-    await api('/.netlify/functions/admin-logout',{method:'POST'});
-    location.reload()
+    await window.identityLogout();
   }catch(err){
-    msg(adminMsg,err.message,'err')
+    msg(adminMsg,err.message||'Odjava nije uspjela.','err')
+  }finally{
+    location.reload()
   }
 };
 
@@ -239,13 +230,30 @@ document.getElementById('logoutBtn').onclick=async()=>{
 })();
 </script>
 <script type="module">
-  // Netlify Identity: obradi confirmation / invite / OAuth / recovery tokene
-  // prije provjere postojeće admin sesije.
-  import { handleAuthCallback } from "https://cdn.jsdelivr.net/npm/@netlify/identity@2.0.0/+esm";
+  import { oauthLogin, handleAuthCallback, getUser, logout as identityLogout } from "https://cdn.jsdelivr.net/npm/@netlify/identity@2.0.0/+esm";
 
-  handleAuthCallback().catch((error) => {
-    console.error("Netlify Identity callback error:", error);
-  });
+  // Izloži samo potrebne funkcije postojećem kodu stranice.
+  window.oauthLogin = oauthLogin;
+  window.identityLogout = identityLogout;
+
+  async function initIdentity(){
+    try{
+      await handleAuthCallback();
+    }catch(error){
+      console.error("Netlify Identity callback error:", error);
+    }
+
+    try{
+      const user = await getUser();
+      if(user){
+        await load();
+      }
+    }catch(error){
+      console.error("Netlify Identity init error:", error);
+    }
+  }
+
+  window.addEventListener('load', initIdentity);
 </script>
 </body>
 </html>
