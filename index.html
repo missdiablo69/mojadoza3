@@ -1357,7 +1357,11 @@ function prikaziZanimljivosti(tekstovi) {
       }
     }
 
-    // Pokreni poslije osnovnih CMS učitavanja.
-    ucitajSveSekcije().finally(() => vratiSadrzajIzArhiveAkoNedostaje());
+    // Učitaj osnovni sadržaj, a zatim ODMAH vrati sve što je arhiviranjem
+    // uklonjeno iz aktivnih fajlova. Arhiva je ovdje rezervni izvor sadržaja.
+    (async function () {
+      await ucitajSveSekcije();
+      await vratiSadrzajIzArhiveAkoNedostaje();
+    })();
 
   </script>  
