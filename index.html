@@ -4,11 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-src https://timezone.day; form-action 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://timezone.day; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' https: data: blob:; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://*.githubusercontent.com https://timezone.day; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests; block-all-mixed-content">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' https: data: blob:; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://*.githubusercontent.com; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests; block-all-mixed-content">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="X-Frame-Options" content="DENY">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.3.0/dist/purify.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
   <title>Moja Doza - Tarot & Mesečni Horoskop</title>
@@ -33,66 +32,15 @@
       font-family: var(--font-main);
     }
     h1, h2, h3 { font-family: var(--font-heading); }
-    /* Stilovi za sekciju Zanimljivosti - Lista naslova */
-.zanimljivosti-lista {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    max-width: 850px;
-    margin: 0 auto;
-}
-
-.tekst-item {
-    background: var(--card-bg);
-    border: 1px solid var(--accent-color);
-    border-radius: 8px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-}
-
-.tekst-naslov-btn {
-    width: 100%;
-    padding: 16px 20px;
-    background: transparent;
-    color: var(--accent-color);
-    border: none;
-    text-align: left;
-    font-size: 1.1rem;
-    font-family: var(--font-heading);
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: background 0.2s;
-}
-
-.tekst-naslov-btn:hover {
-    background: rgba(212, 175, 55, 0.15);
-}
-
-.tekst-sadrzaj {
-    display: none;
-    padding: 20px;
-    border-top: 1px solid #332a52;
-    color: var(--text-color);
-    line-height: 1.7;
-    background-color: rgba(13, 10, 26, 0.5);
-}
-
-.tekst-item.otvoren .tekst-sadrzaj {
-    display: block;
-}
     header {
-    background: rgba(26, 21, 48, 0.9);
-    padding: 20px;
-    text-align: center;
-    border-bottom: 2px solid var(--accent-color);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-    
+      background: rgba(26, 21, 48, 0.9);
+      padding: 20px;
+      text-align: center;
+      border-bottom: 2px solid var(--accent-color);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
     header h1 { margin: 0; color: var(--accent-color); letter-spacing: 2px; }
     nav a {
       color: var(--text-color);
@@ -105,42 +53,6 @@
     .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
     section { margin-bottom: 60px; padding-top: 20px; }
     h2 { color: var(--accent-color); border-bottom: 1px solid var(--accent-color); padding-bottom: 10px; text-align: center; }
-
-    .karta-moon-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(260px, 330px);
-      gap: 22px;
-      align-items: start;
-    }
-
-    .moon-sidebar {
-      background: rgba(20, 14, 35, 0.78);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 16px;
-      padding: 14px;
-      box-sizing: border-box;
-      overflow: hidden;
-    }
-
-    .moon-timezone-label { font-size: 0.78rem; opacity: 0.8; margin: -8px 0 10px; letter-spacing: .03em; }\n\n.moon-sidebar h3 {
-      margin: 0 0 10px;
-      text-align: center;
-      color: var(--accent-color);
-      font-size: 1.05rem;
-      letter-spacing: 0.06em;
-    }
-
-    .moon-sidebar .moon-widget-wrap {
-      width: 100%;
-      overflow: hidden;
-    }
-
-    @media (max-width: 760px) {
-      .karta-moon-layout {
-        grid-template-columns: 1fr;
-      }
-    }
-
     .tarot-box {
       background: var(--card-bg);
       border: 1px solid var(--accent-color);
@@ -237,192 +149,6 @@
     }
     .dropdown-content a:hover { background-color: #251d42; color: var(--accent-color); }
     .dropdown:hover .dropdown-content { display: block; }
-
-    /* ANALIZE koristi isti vizuelni sistem kao Mesečni Horoskop. */
-    .analiza-kartica { min-height: 120px; }
-
-    /* BLOG */
-    .blog-lista {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-      max-width: 900px;
-      margin: 0 auto;
-    }
-    .blog-item {
-      background: var(--card-bg);
-      border: 1px solid var(--accent-color);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .blog-naslov-btn {
-      width: 100%;
-      padding: 18px 20px;
-      background: transparent;
-      color: var(--accent-color);
-      border: none;
-      text-align: left;
-      font-size: 1.15rem;
-      font-family: var(--font-heading);
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .blog-naslov-btn:hover { background: rgba(212, 175, 55, 0.15); }
-    .blog-sadrzaj {
-      display: none;
-      padding: 20px;
-      border-top: 1px solid #332a52;
-      background-color: rgba(13, 10, 26, 0.5);
-    }
-    .blog-item.otvoren .blog-sadrzaj { display: block; }
-    .blog-slika {
-      display: block;
-      width: 100%;
-      max-height: 480px;
-      object-fit: cover;
-      border-radius: 8px;
-      margin: 0 auto 18px;
-      border: 1px solid #332a52;
-    }
-    .blog-opis {
-      color: var(--text-color);
-      opacity: .9;
-      margin-bottom: 15px;
-    }
-
-    /* MOJA DOZA - komentari i brojač posjeta (dodatak, ne mijenja postojeće sekcije) */
-    .mojadoza-comments {
-      margin-top: 24px;
-      padding-top: 20px;
-      border-top: 1px solid #332a52;
-    }
-    .mojadoza-comments-title {
-      color: var(--accent-color);
-      font-family: var(--font-heading);
-      font-size: 1.05rem;
-      margin: 0 0 14px;
-    }
-    .mojadoza-comment-form {
-      display: grid;
-      gap: 9px;
-      margin-bottom: 18px;
-    }
-    .mojadoza-comment-form input,
-    .mojadoza-comment-form textarea {
-      width: 100%;
-      box-sizing: border-box;
-      border: 1px solid #4b3b70;
-      border-radius: 8px;
-      background: #0f0b1d;
-      color: var(--text-color);
-      padding: 10px 12px;
-      font: inherit;
-      outline: none;
-    }
-    .mojadoza-comment-form input:focus,
-    .mojadoza-comment-form textarea:focus {
-      border-color: var(--accent-color);
-    }
-    .mojadoza-comment-form textarea {
-      min-height: 82px;
-      resize: vertical;
-    }
-    .mojadoza-comment-form-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .mojadoza-comment-submit {
-      border: 1px solid var(--accent-color);
-      border-radius: 8px;
-      background: transparent;
-      color: var(--accent-color);
-      padding: 9px 15px;
-      cursor: pointer;
-      font: inherit;
-    }
-    .mojadoza-comment-submit:hover {
-      background: rgba(212, 175, 55, 0.12);
-    }
-    .mojadoza-comment-submit:disabled {
-      opacity: .55;
-      cursor: wait;
-    }
-    .mojadoza-comment-count {
-      font-size: .78rem;
-      opacity: .65;
-    }
-    .mojadoza-comment-msg {
-      min-height: 20px;
-      font-size: .86rem;
-      margin-top: 2px;
-    }
-    .mojadoza-comment-msg.error { color: #ff9f9f; }
-    .mojadoza-comment-msg.ok { color: #bde8c3; }
-    .mojadoza-comment {
-      padding: 12px 0;
-      border-top: 1px solid rgba(75,59,112,.55);
-    }
-    .mojadoza-comment:first-child { border-top: 0; }
-    .mojadoza-comment-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: baseline;
-      flex-wrap: wrap;
-      margin-bottom: 4px;
-    }
-    .mojadoza-comment-name {
-      color: var(--accent-color);
-      font-weight: 600;
-    }
-    .mojadoza-comment-date {
-      font-size: .74rem;
-      opacity: .55;
-    }
-    .mojadoza-comment-body {
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-    }
-    .mojadoza-admin-reply {
-      margin: 9px 0 0 14px;
-      padding-left: 12px;
-      border-left: 2px solid var(--accent-color);
-    }
-    .mojadoza-admin-label {
-      color: var(--accent-color);
-      font-weight: 600;
-      font-size: .9rem;
-      margin-bottom: 3px;
-    }
-    .mojadoza-visit-counter {
-      position: fixed;
-      right: 14px;
-      bottom: 70px;
-      z-index: 9998;
-      background: rgba(26,21,48,.94);
-      border: 1px solid var(--accent-color);
-      color: var(--text-color);
-      border-radius: 999px;
-      padding: 7px 12px;
-      font-size: .78rem;
-      box-shadow: 0 5px 20px rgba(0,0,0,.35);
-      backdrop-filter: blur(5px);
-    }
-    .mojadoza-honeypot {
-      position: absolute !important;
-      left: -10000px !important;
-      width: 1px !important;
-      height: 1px !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
-    }
-
   </style>
 
   <script>
@@ -508,35 +234,7 @@
           <a href="#horoskop" onclick="prikaziZnak('ribe')">Ribe</a>
         </div>
       </div>
-      <div class="dropdown">
-        <a href="#analize" class="dropbtn">ANALIZE ▾</a>
-        <div class="dropdown-content">
-          <a href="#analize" onclick="prikaziAnalizu('ovan')">Ovan</a>
-          <a href="#analize" onclick="prikaziAnalizu('bik')">Bik</a>
-          <a href="#analize" onclick="prikaziAnalizu('blizanci')">Blizanci</a>
-          <a href="#analize" onclick="prikaziAnalizu('rak')">Rak</a>
-          <a href="#analize" onclick="prikaziAnalizu('lav')">Lav</a>
-          <a href="#analize" onclick="prikaziAnalizu('devica')">Devica</a>
-          <a href="#analize" onclick="prikaziAnalizu('vaga')">Vaga</a>
-          <a href="#analize" onclick="prikaziAnalizu('skorpija')">Škorpija</a>
-          <a href="#analize" onclick="prikaziAnalizu('strelac')">Strelac</a>
-          <a href="#analize" onclick="prikaziAnalizu('jarac')">Jarac</a>
-          <a href="#analize" onclick="prikaziAnalizu('vodolija')">Vodolija</a>
-          <a href="#analize" onclick="prikaziAnalizu('ribe')">Ribe</a>
-        </div>
-      </div>
-      <div class="dropdown" id="zanimljivosti-dropdown">
-        <a href="zanimljivosti.html" class="dropbtn">Zanimljivosti ▾</a>
-        <div class="dropdown-content" id="zanimljivosti-dropdown-content">
-          <a href="zanimljivosti.html">Učitavanje...</a>
-        </div>
-      </div>
-      <div class="dropdown" id="blog-dropdown">
-        <a href="#blog" class="dropbtn">Blog ▾</a>
-        <div class="dropdown-content" id="blog-dropdown-content">
-          <a href="#blog">Učitavanje...</a>
-        </div>
-      </div>
+      <a href="#zanimljivosti">Zanimljivosti</a>
       <a href="#privatna-citanja">Privatna Čitanja</a>
       <button id="audio-btn" onclick="toggleAudio()" class="btn-audio" style="display:none;">🎵 Muzika</button>
     </nav>
@@ -550,27 +248,12 @@
     <!-- Sekcija: Karta Dana -->
     <section id="karta-dana">
       <h2>Karta Dana</h2>
-
-      <div class="karta-moon-layout">
-        <div class="tarot-box">
-          <p>Otkrijte šta vam zvezde i simboli poručuju danas. Opustite se i kliknite na dugme ispod.</p>
-          <div class="card-display" id="cardDisplay"></div>
-          <h3 id="cardName" style="color: var(--accent-color); margin-top: 15px;"></h3>
-          <p id="cardMeaning"></p>
-          <button class="btn-draw" onclick="drawCard()">Izvuci Kartu Dana</button>
-        </div>
-
-        <aside class="moon-sidebar" aria-label="Current Moon">
-          <h3>🌙 CURRENT MOON</h3>
-          <div class="moon-timezone-label">London time · Europe/London</div>
-          <div class="moon-widget-wrap">
-            <script src="https://timezone.day/js/embed.js"
-                    data-tool="moon_phase"
-                    data-place="London"
-                    data-size="compact"
-                    async></script>
-          </div>
-        </aside>
+      <div class="tarot-box">
+        <p>Otkrijte šta vam zvezde i simboli poručuju danas. Opustite se i kliknite na dugme ispod.</p>
+        <div class="card-display" id="cardDisplay"></div>
+        <h3 id="cardName" style="color: var(--accent-color); margin-top: 15px;"></h3>
+        <p id="cardMeaning"></p>
+        <button class="btn-draw" onclick="drawCard()">Izvuci Kartu Dana</button>
       </div>
     </section>
 
@@ -593,30 +276,11 @@
       </div>
     </section>
 
-    <!-- Sekcija: ANALIZE -->
-    <section id="analize">
-      <h2>ANALIZE</h2>
-      <div class="grid-3">
-        <div class="card-item analiza-kartica" id="analiza-kartica-ovan"><h3>Ovan</h3><div id="analiza-ovan"><p>Učitavanje...</p></div></div>
-        <div class="card-item analiza-kartica" id="analiza-kartica-bik"><h3>Bik</h3><div id="analiza-bik"><p>Učitavanje...</p></div></div>
-        <div class="card-item analiza-kartica" id="analiza-kartica-blizanci"><h3>Blizanci</h3><div id="analiza-blizanci"><p>Učitavanje...</p></div></div>
-        <div class="card-item analiza-kartica" id="analiza-kartica-rak"><h3>Rak</h3><div id="analiza-rak"><p>Učitavanje...</p></div></div>
-        <div class="card-item analiza-kartica" id="analiza-kartica-lav"><h3>Lav</h3><div id="analiza-lav"><p>Učitavanje...</p></div></div>
-        <div class="card-item analiza-kartica" id="analiza-kartica-devica"><h3>Devica</h3><div id="analiza-devica"><p>Učitavanje...</p></div></div>
-        <div class="card-item analiza-kartica" id="analiza-kartica-vaga"><h3>Vaga</h3><div id="analiza-vaga"><p>Učitavanje...</p></div></div>
-        <div class="card-item analiza-kartica" id="analiza-kartica-skorpija"><h3>Škorpija</h3><div id="analiza-skorpija"><p>Učitavanje...</p></div></div>
-        <div class="card-item analiza-kartica" id="analiza-kartica-strelac"><h3>Strelac</h3><div id="analiza-strelac"><p>Učitavanje...</p></div></div>
-        <div class="card-item analiza-kartica" id="analiza-kartica-jarac"><h3>Jarac</h3><div id="analiza-jarac"><p>Učitavanje...</p></div></div>
-        <div class="card-item analiza-kartica" id="analiza-kartica-vodolija"><h3>Vodolija</h3><div id="analiza-vodolija"><p>Učitavanje...</p></div></div>
-        <div class="card-item analiza-kartica" id="analiza-kartica-ribe"><h3>Ribe</h3><div id="analiza-ribe"><p>Učitavanje...</p></div></div>
-      </div>
-    </section>
-
-    <!-- Sekcija: Blog -->
-    <section id="blog">
-      <h2>Blog</h2>
-      <div class="blog-lista" id="sekcija-blog">
-        <p>Učitavanje blog objava...</p>
+    <!-- Sekcija: Zanimljivosti -->
+    <section id="zanimljivosti">
+      <h2>Zanimljivosti & Tekstovi</h2>
+      <div class="grid-3" id="sekcija-zanimljivosti">
+        <p>Učitavanje tekstova...</p>
       </div>
     </section>
 
@@ -878,218 +542,163 @@
       return { data: data || {}, content: match[2] || '' };
     }
 
-    const ZNACI = [
-      'ovan', 'bik', 'blizanci', 'rak', 'lav', 'devica',
-      'vaga', 'skorpija', 'strelac', 'jarac', 'vodolija', 'ribe'
-    ];
+    // ------------------------------------------------------------
+    // SIGURNA REZERVA: AKO JE SADRŽAJ SKLONJEN IZ AKTIVNIH FAJLOVA
+    // arhiva ga i dalje može prikazati na sajtu.
+    // ------------------------------------------------------------
+    async function ucitajArhivu() {
+      const files = await fetchGitHubFolder('content/arhiva');
+      const arhiva = files
+        .filter(f => f.type === 'file' && /\.md$/i.test(f.name))
+        .sort((a,b) => a.name.localeCompare(b.name));
 
-    // Biramo najnoviji CMS dokument po datumu iz imena fajla.
-    // Ako su datumi isti, posljednji naziv po sortiranju je pobjednik.
-    function datumIzNazivaFajla(name) {
-      const m = String(name || '').match(/(20\d{2})[-_](\d{1,2})[-_](\d{1,2})/);
-      if (!m) return 0;
-      const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
-      return Number.isNaN(d.getTime()) ? 0 : d.getTime();
-    }
-
-    function izaberiNajnovijiCmsFajl(files) {
-      return files
-        .slice()
-        .sort((a, b) => {
-          const da = datumIzNazivaFajla(a.name);
-          const db = datumIzNazivaFajla(b.name);
-          if (da !== db) return da - db;
-          return String(a.name).localeCompare(String(b.name), undefined, {
-            numeric: true,
-            sensitivity: 'base'
-          });
-        })
-        .pop();
-    }
-
-    async function ucitajCmsDokument(folder, tip) {
-      const files = await fetchGitHubFolder(folder);
-      const cmsFiles = files
-        .filter(f => f.type === 'file' && /\.(md|markdown|json)$/i.test(f.name));
-
-      if (!cmsFiles.length) {
-        throw new Error(`Nema ${tip} fajlova u ${folder}.`);
-      }
-
-      const latest = izaberiNajnovijiCmsFajl(cmsFiles);
-      const raw = await fetchText(latest.download_url || latest.html_url);
-
-      let data;
-      if (/\.json$/i.test(latest.name)) {
+      const rezultat = [];
+      for (const file of arhiva) {
         try {
-          data = JSON.parse(raw);
+          const raw = await fetchText(file.download_url || file.html_url);
+          const parsed = parseCmsMarkdown(raw);
+          const meta = parsed.data || {};
+          rezultat.push({
+            file,
+            originalFile: meta.original_file || '',
+            field: meta.field || '',
+            content: parsed.content || '',
+            archivedAt: meta.archived_at || ''
+          });
         } catch (e) {
-          throw new Error(`${tip} JSON nije ispravan: ${latest.name}`);
+          console.warn('Arhivski fajl nije moguće pročitati:', file.name, e);
         }
-      } else {
-        data = parseCmsMarkdown(raw);
       }
+      return rezultat;
+    }
 
-      return { data, file: latest };
+    function najnovijaArhiviranaVrijednost(arhiva, fieldNames, originalHint) {
+      const wanted = fieldNames.map(x => String(x).toLowerCase());
+      const hint = String(originalHint || '').toLowerCase();
+      const kandidati = arhiva.filter(x => {
+        const f = String(x.field || '').toLowerCase();
+        const o = String(x.originalFile || '').toLowerCase();
+        return wanted.includes(f) && (!hint || o.includes(hint) || hint.includes(o));
+      });
+      kandidati.sort((a,b) => String(a.archivedAt).localeCompare(String(b.archivedAt)));
+      return kandidati.length ? kandidati[kandidati.length - 1].content : '';
+    }
+
+    async function ucitajHoroskopIzArhive() {
+      const znaci = ['ovan','bik','blizanci','rak','lav','devica','vaga','skorpija','strelac','jarac','vodolija','ribe'];
+      const arhiva = await ucitajArhivu();
+      let pronadjeno = 0;
+      znaci.forEach(znak => {
+        const el = document.getElementById(`horoskop-${znak}`);
+        if (!el) return;
+        const tekst = najnovijaArhiviranaVrijednost(arhiva, [znak], 'horoskop');
+        if (tekst) { renderujTekst(el, tekst); pronadjeno++; }
+      });
+      return pronadjeno > 0;
     }
 
     async function ucitajHoroskop() {
-      try {
-        const rezultat = await ucitajCmsDokument('content/horoskop', 'Horoskop');
-        const data = rezultat.data?.data && typeof rezultat.data.data === 'object'
-          ? rezultat.data.data
-          : rezultat.data;
-        const cmsContent = rezultat.data?.content || '';
+      const znaci = [
+        'ovan', 'bik', 'blizanci', 'rak', 'lav', 'devica',
+        'vaga', 'skorpija', 'strelac', 'jarac', 'vodolija', 'ribe'
+      ];
 
-        ZNACI.forEach(znak => {
+      try {
+        const files = await fetchGitHubFolder('content/horoskop');
+        const cmsFiles = files
+          .filter(f => f.type === 'file' && /\.(md|markdown|json)$/i.test(f.name))
+          .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+
+        if (!cmsFiles.length) throw new Error('Nema horoskopskih fajlova.');
+
+        const latest = cmsFiles[cmsFiles.length - 1];
+        const raw = await fetchText(latest.download_url || latest.html_url);
+
+        let data;
+        if (/\.json$/i.test(latest.name)) {
+          try {
+            data = JSON.parse(raw);
+          } catch (e) {
+            throw new Error(`Horoskop JSON nije ispravan: ${latest.name}`);
+          }
+        } else {
+          data = parseCmsMarkdown(raw);
+        }
+
+        const arhivaFallback = await ucitajArhivu().catch(() => []);
+        znaci.forEach(znak => {
           const el = document.getElementById(`horoskop-${znak}`);
           if (!el) return;
 
-          const tekst = nadjiZnak(data, znak);
+          const tekst = data[znak];
+          const arhiviraniTekst = najnovijaArhiviranaVrijednost(arhivaFallback, [znak], 'horoskop');
 
           if (tekst) {
             renderujTekst(el, tekst);
-          } else if (data.body || data.content || cmsContent) {
-            renderujTekst(el, data.body || data.content || cmsContent);
+          } else if (arhiviraniTekst) {
+            renderujTekst(el, arhiviraniTekst);
+          } else if (data.body || data.content) {
+            renderujTekst(el, data.body || data.content);
           } else {
             el.innerHTML = '<p>Sadržaj trenutno nije dostupan.</p>';
           }
         });
+
       } catch (e) {
-        console.error('Greška pri učitavanju horoskopa:', e);
-        ZNACI.forEach(znak => {
+        console.warn('Aktivni horoskop nije dostupan; pokušavam arhivu.', e);
+        try {
+          const ok = await ucitajHoroskopIzArhive();
+          if (ok) return;
+        } catch (archiveError) {
+          console.error('Ni arhiva horoskopa nije dostupna:', archiveError);
+        }
+        znaci.forEach(znak => {
           const el = document.getElementById(`horoskop-${znak}`);
           if (el) el.innerHTML = '<p>Sadržaj trenutno nije dostupan.</p>';
         });
       }
     }
 
-    async function ucitajAnalize() {
-      const praznaPoruka = '<p>Analiza trenutno nije dostupna.</p>';
-
-      try {
-        // ANALIZE čitamo direktno iz istog GitHub repozitorijuma koji koristi Back Office.
-        // Prvo uzimamo spisak fajlova iz content/analize/, a zatim stvarni .md fajl.
-        // Ovo je namjerno odvojeno od horoskopa da se postojeći sadržaj ne mijenja.
-        const files = await fetchGitHubFolder('content/analize');
-        const cmsFiles = files
-          .filter(f => f && f.type === 'file' && /\.(md|markdown|json)$/i.test(f.name));
-
-        if (!cmsFiles.length) {
-          throw new Error('Back Office folder content/analize je prazan ili nije pronađen.');
-        }
-
-        const latest = izaberiNajnovijiCmsFajl(cmsFiles);
-        if (!latest) throw new Error('Nije pronađen nijedan ANALIZE dokument.');
-
-        // GitHub API download_url je direktan sadržaj fajla koji je Back Office sačuvao.
-        const raw = await fetchText(
-          latest.download_url ||
-          `https://raw.githubusercontent.com/missdiablo69/mojadoza3/main/content/analize/${encodeURIComponent(latest.name)}`
-        );
-
-        let parsed;
-        if (/\.json$/i.test(latest.name)) {
-          parsed = JSON.parse(raw);
-        } else {
-          parsed = parseCmsMarkdown(raw);
-        }
-
-        // parseCmsMarkdown vraća { data: {...}, content: '...' }.
-        // Decap CMS je u našem fajlu sačuvao svaki znak kao YAML polje:
-        // ovan, bik, blizanci ... Zato uzimamo parsed.data, ne parsed.
-        const data = parsed && parsed.data && typeof parsed.data === 'object'
-          ? parsed.data
-          : (parsed && typeof parsed === 'object' ? parsed : {});
-
-        console.log('ANALIZE učitane iz Back Office-a:', latest.name, Object.keys(data));
-
-        ZNACI.forEach(znak => {
-          const el = document.getElementById(`analiza-${znak}`);
-          if (!el) return;
-
-          const vrijednost = nadjiZnak(data, znak);
-          const tekst = normalizujTekst(vrijednost).trim();
-
-          if (tekst) {
-            renderujTekst(el, tekst);
-          } else {
-            // Vodolija i Ribe su namjerno ostavljeni kao prazna polja dok ih
-            // korisnica ne unese u Back Office. Ostalih 10 znakova prikazuju sadržaj.
-            el.innerHTML = praznaPoruka;
-          }
-        });
-      } catch (e) {
-        console.error('Greška pri učitavanju analiza iz Back Office-a:', e);
-        ZNACI.forEach(znak => {
-          const el = document.getElementById(`analiza-${znak}`);
-          if (el) el.innerHTML = praznaPoruka;
-        });
-      }
-    }
-
     async function ucitajZanimljivosti() {
       const kontejner = document.getElementById('sekcija-zanimljivosti');
-      const dropdown = document.getElementById('zanimljivosti-dropdown-content');
       if (!kontejner) return;
 
       try {
-        // Svi postojeći tekstovi ostaju direktno u content/zanimljivosti/.
-        // Nema potrebe za fizičkim folderom znakovi.
+        // Prema config.yml, Zanimljivosti nisu jedan JSON fajl nego folder:
+        // content/zanimljivosti/*.md
         const files = await fetchGitHubFolder('content/zanimljivosti');
         const cmsFiles = files
           .filter(f => f.type === 'file' && /\.(md|markdown|json)$/i.test(f.name))
-          .sort((a, b) => a.name.localeCompare(b.name, undefined, {
-            numeric: true,
-            sensitivity: 'base'
-          }));
+          .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
 
         if (!cmsFiles.length) {
+          const arhiva = await ucitajArhivu().catch(() => []);
+          const grupisano = {};
+          arhiva.filter(x => /zanimljivosti/i.test(x.originalFile || '')).forEach(x => {
+            const key = x.originalFile + '|' + x.field;
+            if (!grupisano[key] || String(x.archivedAt) > String(grupisano[key].archivedAt)) grupisano[key] = x;
+          });
+          const stavke = Object.values(grupisano);
+          if (stavke.length) {
+            const poFajlu = {};
+            stavke.forEach(x => { (poFajlu[x.originalFile] ||= []).push(x); });
+            kontejner.innerHTML = Object.entries(poFajlu).map(([file, items]) => {
+              const title = items.find(x => String(x.field).toLowerCase() === 'title')?.content || file.replace(/.*\//,'').replace(/\.(md|markdown|json)$/i,'');
+              const body = items.find(x => ['body','tekst','content','description','opis'].includes(String(x.field).toLowerCase()))?.content || '';
+              return `<div class="card-item"><h3>${String(title).replace(/</g,'&lt;').replace(/>/g,'&gt;')}</h3><div>${typeof marked !== 'undefined' && marked.parse ? marked.parse(body) : String(body).replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div></div>`;
+            }).join('');
+            return;
+          }
           kontejner.innerHTML = '<p>Trenutno nema objavljenih tekstova.</p>';
-          if (dropdown) dropdown.innerHTML = '<a href="zanimljivosti.html">Trenutno nema objava</a>';
           return;
         }
 
         const posts = [];
-
-        for (let i = 0; i < cmsFiles.length; i++) {
-          const file = cmsFiles[i];
+        for (const file of cmsFiles) {
           try {
             const raw = await fetchText(file.download_url || file.html_url);
-            const data = /\.json$/i.test(file.name)
-              ? JSON.parse(raw)
-              : parseCmsMarkdown(raw);
-
-            const meta = (data && data.data && typeof data.data === 'object') ? data.data : data;
-            let naslov = normalizujTekst(
-              meta?.naslov ?? meta?.title ?? meta?.NASLOV ?? ''
-            ).trim();
-
-            // Ako nema NASLOV/TITLE, uzmi prvi Markdown H1/H2.
-            if (!naslov) {
-              const headingMatch = String(data?.content || '').match(/^#{1,2}\s+(.+)$/m);
-              if (headingMatch) naslov = headingMatch[1].trim();
-            }
-
-            if (!naslov) {
-              // Posljednji fallback je ime fajla, bez ekstenzije.
-              naslov = file.name.replace(/\.(md|markdown|json)$/i, '').replace(/[-_]+/g, ' ').trim();
-            }
-
-            const opis = normalizujTekst(
-              meta?.opis ?? meta?.description ?? meta?.OPIS ?? ''
-            ).trim();
-            const body = normalizujTekst(
-              meta?.body ?? meta?.tekst ?? meta?.content ?? data?.content ?? ''
-            ).trim();
-
-            posts.push({
-              data,
-              naslov,
-              tekst: body || opis,
-              id: `zanimljivost-${i}`,
-              fileName: file.name
-            });
+            const data = /\.json$/i.test(file.name) ? JSON.parse(raw) : parseCmsMarkdown(raw);
+            posts.push(data);
           } catch (fileError) {
             console.warn(`Nije moguće učitati ${file.name}:`, fileError);
           }
@@ -1097,578 +706,45 @@
 
         if (!posts.length) {
           kontejner.innerHTML = '<p>Trenutno nema objavljenih tekstova.</p>';
-          if (dropdown) dropdown.innerHTML = '<a href="zanimljivosti.html">Trenutno nema objava</a>';
           return;
         }
 
-        kontejner.className = 'zanimljivosti-lista';
-        kontejner.innerHTML = '';
+        kontejner.innerHTML = posts.map(z => {
+          // Tačno odgovara config.yml-u: title + description + body.
+          const naslov = z.title ?? z.naslov ?? '';
+          const opis = z.description ?? z.opis ?? '';
+          const body = z.body ?? z.tekst ?? z.content ?? '';
+          const tekst = body || opis;
 
-        // Dropdown Zanimljivosti automatski dobija sve postojeće objave.
-        // Svaka nova .md/.json objava direktno u content/zanimljivosti/ pojaviće se ovdje.
-        if (dropdown) {
-          dropdown.innerHTML = '';
-          posts.forEach((post) => {
-            const link = document.createElement('a');
-            link.href = '#zanimljivosti';
-            link.textContent = post.naslov;
-            link.dataset.postId = post.id;
-            link.addEventListener('click', (event) => {
-              event.preventDefault();
-              const target = document.getElementById(post.id);
-              if (target) {
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                const button = target.querySelector('.tekst-naslov-btn');
-                if (button) button.click();
-              }
-            });
-            dropdown.appendChild(link);
-          });
-        }
+          const safeTitle = String(naslov)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
 
-        posts.forEach((post) => {
-          const item = document.createElement('div');
-          item.className = 'tekst-item';
-          item.id = post.id;
+          const renderedText =
+            typeof marked !== 'undefined' && typeof marked.parse === 'function'
+              ? marked.parse(String(tekst))
+              : String(tekst)
+                  .replace(/&/g, '&amp;')
+                  .replace(/</g, '&lt;')
+                  .replace(/>/g, '&gt;')
+                  .replace(/\n/g, '<br>');
 
-          const dugme = document.createElement('button');
-          dugme.type = 'button';
-          dugme.className = 'tekst-naslov-btn';
-          dugme.setAttribute('aria-expanded', 'false');
-
-          const naslovSpan = document.createElement('span');
-          naslovSpan.textContent = post.naslov;
-
-          const strelicaSpan = document.createElement('span');
-          strelicaSpan.className = 'strelica';
-          strelicaSpan.textContent = '▼';
-          strelicaSpan.setAttribute('aria-hidden', 'true');
-
-          dugme.appendChild(naslovSpan);
-          dugme.appendChild(strelicaSpan);
-
-          const sadrzaj = document.createElement('div');
-          sadrzaj.className = 'tekst-sadrzaj';
-          sadrzaj.setAttribute('aria-hidden', 'true');
-
-          if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
-            sadrzaj.innerHTML = sanitizujHtml(marked.parse(post.tekst));
-          } else {
-            sadrzaj.textContent = post.tekst;
-          }
-
-          dugme.addEventListener('click', () => {
-            const otvoren = item.classList.contains('otvoren');
-
-            kontejner.querySelectorAll('.tekst-item.otvoren').forEach(other => {
-              if (other === item) return;
-              other.classList.remove('otvoren');
-              const otherButton = other.querySelector('.tekst-naslov-btn');
-              const otherArrow = other.querySelector('.strelica');
-              const otherContent = other.querySelector('.tekst-sadrzaj');
-              if (otherButton) otherButton.setAttribute('aria-expanded', 'false');
-              if (otherArrow) otherArrow.textContent = '▼';
-              if (otherContent) otherContent.setAttribute('aria-hidden', 'true');
-            });
-
-            if (!otvoren) {
-              item.classList.add('otvoren');
-              dugme.setAttribute('aria-expanded', 'true');
-              strelicaSpan.textContent = '▲';
-              sadrzaj.setAttribute('aria-hidden', 'false');
-            } else {
-              item.classList.remove('otvoren');
-              dugme.setAttribute('aria-expanded', 'false');
-              strelicaSpan.textContent = '▼';
-              sadrzaj.setAttribute('aria-hidden', 'true');
-            }
-          });
-
-          item.appendChild(dugme);
-          item.appendChild(sadrzaj);
-          kontejner.appendChild(item);
-        });
-
-        zastitiLinkove(kontejner);
+          return `
+            <div class="card-item">
+              <h3>${safeTitle}</h3>
+              ${opis && !body ? `<p>${String(opis).replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>` : ''}
+              <div>${renderedText}</div>
+            </div>
+          `;
+        }).join('');
 
       } catch (e) {
         console.error('Greška pri učitavanju zanimljivosti:', e);
         kontejner.innerHTML = '<p>Sadržaj trenutno nije dostupan.</p>';
-        if (dropdown) dropdown.innerHTML = '<a href="zanimljivosti.html">Sadržaj trenutno nije dostupan</a>';
       }
     }
-
-
-    // ------------------------------------------------------------
-    // BLOG LOADER
-    // Čita objave iz content/blog/
-    // Decap CMS može čuvati naslov, opis, sliku i Markdown sadržaj.
-    // ------------------------------------------------------------
-    async function ucitajBlog() {
-      const kontejner = document.getElementById('sekcija-blog');
-      const dropdown = document.getElementById('blog-dropdown-content');
-      if (!kontejner) return;
-
-      try {
-        const files = await fetchGitHubFolder('content/blog');
-        const cmsFiles = files
-          .filter(f => f.type === 'file' && /\.(md|markdown|json)$/i.test(f.name))
-          .sort((a, b) => a.name.localeCompare(b.name, undefined, {
-            numeric: true,
-            sensitivity: 'base'
-          }));
-
-        if (!cmsFiles.length) {
-          kontejner.innerHTML = '<p>Trenutno nema objavljenih blog tekstova.</p>';
-          if (dropdown) dropdown.innerHTML = '<a href="#blog">Trenutno nema objava</a>';
-          return;
-        }
-
-        const posts = [];
-
-        for (let i = 0; i < cmsFiles.length; i++) {
-          const file = cmsFiles[i];
-
-          try {
-            const raw = await fetchText(file.download_url || file.html_url);
-            const data = /\.json$/i.test(file.name)
-              ? JSON.parse(raw)
-              : parseCmsMarkdown(raw);
-
-            const meta = (data && data.data && typeof data.data === 'object')
-              ? data.data
-              : data;
-
-            let naslov = normalizujTekst(
-              meta?.title ?? meta?.naslov ?? ''
-            ).trim();
-
-            if (!naslov) {
-              const headingMatch = String(data?.content || '').match(/^#{1,2}\s+(.+)$/m);
-              if (headingMatch) naslov = headingMatch[1].trim();
-            }
-
-            if (!naslov) {
-              naslov = file.name
-                .replace(/\.(md|markdown|json)$/i, '')
-                .replace(/[-_]+/g, ' ')
-                .trim();
-            }
-
-            const opis = normalizujTekst(
-              meta?.description ?? meta?.opis ?? ''
-            ).trim();
-
-            const slika = bezbjedanUrl(
-              meta?.image ?? meta?.slika ?? meta?.featured_image ?? '',
-              'image'
-            );
-
-            const body = normalizujTekst(
-              meta?.body ?? meta?.tekst ?? meta?.content ?? data?.content ?? ''
-            ).trim();
-
-            posts.push({
-              naslov,
-              opis,
-              slika,
-              tekst: body || opis,
-              fileName: file.name,
-              id: `blog-${i}`
-            });
-          } catch (fileError) {
-            console.warn(`Nije moguće učitati blog ${file.name}:`, fileError);
-          }
-        }
-
-        if (!posts.length) {
-          kontejner.innerHTML = '<p>Trenutno nema objavljenih blog tekstova.</p>';
-          if (dropdown) dropdown.innerHTML = '<a href="#blog">Trenutno nema objava</a>';
-          return;
-        }
-
-        kontejner.innerHTML = '';
-
-        if (dropdown) {
-          dropdown.innerHTML = '';
-
-          posts.forEach(post => {
-            const link = document.createElement('a');
-            link.href = '#blog';
-            link.textContent = post.naslov;
-            link.addEventListener('click', event => {
-              event.preventDefault();
-
-              const target = document.getElementById(post.id);
-              if (target) {
-                target.scrollIntoView({
-                  behavior: 'smooth',
-                  block: 'start'
-                });
-
-                const button = target.querySelector('.blog-naslov-btn');
-                if (button) button.click();
-              }
-            });
-
-            dropdown.appendChild(link);
-          });
-        }
-
-        posts.forEach(post => {
-          const item = document.createElement('article');
-          item.className = 'blog-item';
-          item.id = post.id;
-
-          const dugme = document.createElement('button');
-          dugme.type = 'button';
-          dugme.className = 'blog-naslov-btn';
-          dugme.setAttribute('aria-expanded', 'false');
-
-          const naslovSpan = document.createElement('span');
-          naslovSpan.textContent = post.naslov;
-
-          const strelicaSpan = document.createElement('span');
-          strelicaSpan.className = 'strelica';
-          strelicaSpan.textContent = '▼';
-          strelicaSpan.setAttribute('aria-hidden', 'true');
-
-          dugme.appendChild(naslovSpan);
-          dugme.appendChild(strelicaSpan);
-
-          const sadrzaj = document.createElement('div');
-          sadrzaj.className = 'blog-sadrzaj';
-          sadrzaj.setAttribute('aria-hidden', 'true');
-
-          if (post.slika) {
-            const img = document.createElement('img');
-            img.className = 'blog-slika';
-            img.src = post.slika;
-            img.alt = post.naslov;
-            img.loading = 'lazy';
-            sadrzaj.appendChild(img);
-          }
-
-          if (post.opis) {
-            const opis = document.createElement('div');
-            opis.className = 'blog-opis';
-            renderujTekst(opis, post.opis);
-            sadrzaj.appendChild(opis);
-          }
-
-          const tekst = document.createElement('div');
-          if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
-            tekst.innerHTML = sanitizujHtml(marked.parse(post.tekst));
-          } else {
-            tekst.textContent = post.tekst;
-          }
-          sadrzaj.appendChild(tekst);
-
-          // Dodatak: komentari ispod teksta bloga. Postojeći blog markup ostaje isti.
-          dodajKomentareZaBlog(sadrzaj, {
-            postKey: `blog:${String(post.fileName || post.naslov || '').trim()}`,
-            postTitle: post.naslov
-          });
-
-          dugme.addEventListener('click', () => {
-            const otvoren = item.classList.contains('otvoren');
-
-            kontejner.querySelectorAll('.blog-item.otvoren').forEach(other => {
-              if (other === item) return;
-
-              other.classList.remove('otvoren');
-
-              const otherButton = other.querySelector('.blog-naslov-btn');
-              const otherArrow = other.querySelector('.strelica');
-              const otherContent = other.querySelector('.blog-sadrzaj');
-
-              if (otherButton) otherButton.setAttribute('aria-expanded', 'false');
-              if (otherArrow) otherArrow.textContent = '▼';
-              if (otherContent) otherContent.setAttribute('aria-hidden', 'true');
-            });
-
-            if (!otvoren) {
-              item.classList.add('otvoren');
-              dugme.setAttribute('aria-expanded', 'true');
-              strelicaSpan.textContent = '▲';
-              sadrzaj.setAttribute('aria-hidden', 'false');
-            } else {
-              item.classList.remove('otvoren');
-              dugme.setAttribute('aria-expanded', 'false');
-              strelicaSpan.textContent = '▼';
-              sadrzaj.setAttribute('aria-hidden', 'true');
-            }
-          });
-
-          item.appendChild(dugme);
-          item.appendChild(sadrzaj);
-          kontejner.appendChild(item);
-        });
-
-        zastitiLinkove(kontejner);
-
-      } catch (e) {
-        console.error('Greška pri učitavanju bloga:', e);
-        kontejner.innerHTML = '<p>Sadržaj bloga trenutno nije dostupan.</p>';
-        if (dropdown) {
-          dropdown.innerHTML = '<a href="#blog">Sadržaj trenutno nije dostupan</a>';
-        }
-      }
-    }
-
-
-    // ------------------------------------------------------------
-    // MOJA DOZA - NETLIFY KOMENTARI + BROJAČ POSJETA
-    // Ovo je potpuno odvojeno od postojećeg CMS/blog sistema.
-    // ------------------------------------------------------------
-    const MD_COMMENT_MAX = 200;
-    const MD_NICK_MAX = 40;
-
-    function mdEsc(text) {
-      return String(text ?? '');
-    }
-
-    function mdFormatDate(value) {
-      try {
-        return new Intl.DateTimeFormat('sr-Latn', {
-          dateStyle: 'short',
-          timeStyle: 'short'
-        }).format(new Date(value));
-      } catch (_) {
-        return '';
-      }
-    }
-
-    function napraviKomentarEl(c) {
-      const wrap = document.createElement('div');
-      wrap.className = 'mojadoza-comment';
-
-      const head = document.createElement('div');
-      head.className = 'mojadoza-comment-head';
-
-      const name = document.createElement('span');
-      name.className = 'mojadoza-comment-name';
-      name.textContent = `${mdEsc(c.nickname)}:`;
-
-      const date = document.createElement('span');
-      date.className = 'mojadoza-comment-date';
-      date.textContent = mdFormatDate(c.created_at);
-
-      head.append(name, date);
-
-      const body = document.createElement('div');
-      body.className = 'mojadoza-comment-body';
-      body.textContent = c.body || '';
-
-      wrap.append(head, body);
-
-      if (c.admin_reply) {
-        const reply = document.createElement('div');
-        reply.className = 'mojadoza-admin-reply';
-
-        const label = document.createElement('div');
-        label.className = 'mojadoza-admin-label';
-        label.textContent = '↳ Moja Doza:';
-
-        const replyBody = document.createElement('div');
-        replyBody.className = 'mojadoza-comment-body';
-        replyBody.textContent = c.admin_reply;
-
-        reply.append(label, replyBody);
-        wrap.appendChild(reply);
-      }
-
-      return wrap;
-    }
-
-    async function ucitajKomentareZaBlog(listEl, postKey) {
-      try {
-        const res = await fetch('/.netlify/functions/comments?postKey=' + encodeURIComponent(postKey), {
-          cache: 'no-store',
-          headers: { 'Accept': 'application/json' }
-        });
-        if (!res.ok) throw new Error('Komentari nisu dostupni.');
-        const data = await res.json();
-
-        listEl.innerHTML = '';
-        const comments = Array.isArray(data.comments) ? data.comments : [];
-
-        if (!comments.length) {
-          const empty = document.createElement('div');
-          empty.className = 'mojadoza-comment-date';
-          empty.textContent = 'Još nema komentara. Budi prvi/a. ✨';
-          listEl.appendChild(empty);
-          return;
-        }
-
-        comments.forEach(c => listEl.appendChild(napraviKomentarEl(c)));
-      } catch (e) {
-        console.warn('Komentari nisu učitani:', e);
-        listEl.innerHTML = '';
-      }
-    }
-
-    function dodajKomentareZaBlog(parent, post) {
-      const box = document.createElement('section');
-      box.className = 'mojadoza-comments';
-      box.setAttribute('aria-label', 'Komentari');
-
-      const title = document.createElement('h3');
-      title.className = 'mojadoza-comments-title';
-      title.textContent = 'Ostavi komentar';
-
-      const form = document.createElement('form');
-      form.className = 'mojadoza-comment-form';
-      form.autocomplete = 'off';
-
-      const nick = document.createElement('input');
-      nick.type = 'text';
-      nick.name = 'nickname';
-      nick.maxLength = MD_NICK_MAX;
-      nick.required = true;
-      nick.placeholder = 'Nadimak';
-      nick.setAttribute('aria-label', 'Nadimak');
-
-      const body = document.createElement('textarea');
-      body.name = 'body';
-      body.maxLength = MD_COMMENT_MAX;
-      body.required = true;
-      body.placeholder = 'Napiši komentar...';
-      body.setAttribute('aria-label', 'Komentar');
-
-      const honeypot = document.createElement('input');
-      honeypot.type = 'text';
-      honeypot.name = 'website';
-      honeypot.tabIndex = -1;
-      honeypot.autocomplete = 'off';
-      honeypot.className = 'mojadoza-honeypot';
-      honeypot.setAttribute('aria-hidden', 'true');
-
-      const row = document.createElement('div');
-      row.className = 'mojadoza-comment-form-row';
-
-      const count = document.createElement('span');
-      count.className = 'mojadoza-comment-count';
-      count.textContent = `0 / ${MD_COMMENT_MAX}`;
-
-      const submit = document.createElement('button');
-      submit.type = 'submit';
-      submit.className = 'mojadoza-comment-submit';
-      submit.textContent = 'Objavi komentar';
-
-      row.append(count, submit);
-
-      const msg = document.createElement('div');
-      msg.className = 'mojadoza-comment-msg';
-      msg.setAttribute('role', 'status');
-
-      form.append(nick, body, honeypot, row, msg);
-
-      const list = document.createElement('div');
-      list.className = 'mojadoza-comment-list';
-
-      body.addEventListener('input', () => {
-        count.textContent = `${body.value.length} / ${MD_COMMENT_MAX}`;
-      });
-
-      body.addEventListener('keydown', event => {
-        if (event.key === 'Enter' && !event.shiftKey) {
-          event.preventDefault();
-          form.requestSubmit();
-        }
-      });
-
-      form.addEventListener('submit', async event => {
-        event.preventDefault();
-        msg.className = 'mojadoza-comment-msg';
-        msg.textContent = '';
-
-        const nickname = nick.value.trim();
-        const text = body.value.trim();
-
-        if (!nickname) {
-          msg.classList.add('error');
-          msg.textContent = 'Upiši nadimak.';
-          nick.focus();
-          return;
-        }
-        if (!text) {
-          msg.classList.add('error');
-          msg.textContent = 'Upiši komentar.';
-          body.focus();
-          return;
-        }
-        if (nickname.length > MD_NICK_MAX || text.length > MD_COMMENT_MAX) {
-          msg.classList.add('error');
-          msg.textContent = `Komentar može imati najviše ${MD_COMMENT_MAX} znakova.`;
-          return;
-        }
-
-        submit.disabled = true;
-        submit.textContent = 'Objavljujem...';
-
-        try {
-          const res = await fetch('/.netlify/functions/comments', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            body: JSON.stringify({
-              postKey: post.postKey,
-              postTitle: post.postTitle,
-              nickname,
-              body: text,
-              website: honeypot.value
-            })
-          });
-
-          const data = await res.json().catch(() => ({}));
-          if (!res.ok) throw new Error(data.message || 'Komentar nije moguće objaviti.');
-
-          body.value = '';
-          count.textContent = `0 / ${MD_COMMENT_MAX}`;
-          msg.classList.add('ok');
-          msg.textContent = 'Komentar je objavljen. ❤️';
-          await ucitajKomentareZaBlog(list, post.postKey);
-        } catch (e) {
-          msg.classList.add('error');
-          msg.textContent = e.message || 'Došlo je do greške.';
-        } finally {
-          submit.disabled = false;
-          submit.textContent = 'Objavi komentar';
-        }
-      });
-
-      box.append(title, form, list);
-      parent.appendChild(box);
-      ucitajKomentareZaBlog(list, post.postKey);
-    }
-
-    async function ucitajBrojacPosjeta() {
-      try {
-        const countedKey = 'mojadoza_visit_counted_v1';
-        const shouldCount = !sessionStorage.getItem(countedKey);
-
-        const url = shouldCount
-          ? '/.netlify/functions/visits?count=1'
-          : '/.netlify/functions/visits';
-
-        const res = await fetch(url, { cache: 'no-store' });
-        if (!res.ok) return;
-        const data = await res.json();
-
-        if (shouldCount) {
-          sessionStorage.setItem(countedKey, '1');
-        }
-
-        const el = document.createElement('div');
-        el.className = 'mojadoza-visit-counter';
-        el.textContent = `👁️ Posjete: ${Number(data.total || 0).toLocaleString('sr-Latn-RS')}`;
-        document.body.appendChild(el);
-      } catch (e) {
-        console.warn('Brojač posjeta nije dostupan:', e);
-      }
-    }
-
-    ucitajBrojacPosjeta();
 
     async function ucitajPrivatnaCitanja() {
       try {
@@ -1702,9 +778,7 @@
       await Promise.allSettled([
         ucitajIzgled(),
         ucitajHoroskop(),
-        ucitajAnalize(),
         ucitajZanimljivosti(),
-        ucitajBlog(),
         ucitajPrivatnaCitanja()
       ]);
 
@@ -1715,13 +789,6 @@
       const sveKartice = document.querySelectorAll('.horoskop-kartica');
       sveKartice.forEach(k => k.style.display = 'none');
       const izabrana = document.getElementById(`kartica-${znakId}`);
-      if (izabrana) izabrana.style.display = 'block';
-    }
-
-    function prikaziAnalizu(znakId) {
-      const sveKartice = document.querySelectorAll('.analiza-kartica');
-      sveKartice.forEach(k => k.style.display = 'none');
-      const izabrana = document.getElementById(`analiza-kartica-${znakId}`);
       if (izabrana) izabrana.style.display = 'block';
     }
 
@@ -1736,67 +803,7 @@
         btn.innerHTML = "🔇 Muzika Utišana";
       }
     }
-function prikaziZanimljivosti(tekstovi) {
-    const kontejner = document.getElementById('sekcija-zanimljivosti');
-    if (!kontejner) return;
 
-    // 1. Sortiranje po NASLOVU (A-Z)
-    tekstovi.sort((a, b) => {
-        const naslovA = (a.naslov || a.title || '').toLowerCase();
-        const naslovB = (b.naslov || b.title || '').toLowerCase();
-        return naslovA.localeCompare(naslovB, 'sr');
-    });
-
-    // 2. Postavljanje klase za vertikalnu listu
-    kontejner.className = 'zanimljivosti-lista';
-    kontejner.innerHTML = '';
-
-    if (tekstovi.length === 0) {
-        kontejner.innerHTML = '<p style="text-align:center;">Trenutno nema unesenih tekstova.</p>';
-        return;
-    }
-
-    // 3. Prikaz samo naslova jedan ispod drugog
-    tekstovi.forEach(tekst => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'tekst-item';
-
-        const naslovBtn = document.createElement('button');
-        naslovBtn.className = 'tekst-naslov-btn';
-        
-        const naslovTekst = tekst.naslov || tekst.title || 'Bez naslova';
-        naslovBtn.innerHTML = `<span>${sanitizujHtml(naslovTekst)}</span> <span class="strelica">▼</span>`;
-
-        const sadrzajDiv = document.createElement('div');
-        sadrzajDiv.className = 'tekst-sadrzaj';
-        
-        const siroviSadrzaj = tekst.sadrzaj || tekst.body || tekst.tekst || '';
-        const htmlSadrzaj = typeof marked !== 'undefined' ? marked.parse(siroviSadrzaj) : siroviSadrzaj;
-        sadrzajDiv.innerHTML = sanitizujHtml(htmlSadrzaj);
-
-        // Dodavanje klika na naslov (Harmonika efekat)
-        naslovBtn.addEventListener('click', () => {
-            const jeOtvoren = itemDiv.classList.contains('otvoren');
-            
-            document.querySelectorAll('.tekst-item').forEach(el => {
-                el.classList.remove('otvoren');
-                const str = el.querySelector('.strelica');
-                if (str) str.textContent = '▼';
-            });
-
-            if (!jeOtvoren) {
-                itemDiv.classList.add('otvoren');
-                naslovBtn.querySelector('.strelica').textContent = '▲';
-            }
-        });
-
-        itemDiv.appendChild(naslovBtn);
-        itemDiv.appendChild(sadrzajDiv);
-        kontejner.appendChild(itemDiv);
-    });
-
-    zastitiLinkove(kontejner);
-}
-
-ucitajSveSekcije();
-  </script>  
+    ucitajSveSekcije();
+  </script>
+</body>
