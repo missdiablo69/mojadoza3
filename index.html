@@ -1357,11 +1357,13 @@ function prikaziZanimljivosti(tekstovi) {
       }
     }
 
-    // Učitaj osnovni sadržaj, a zatim ODMAH vrati sve što je arhiviranjem
-    // uklonjeno iz aktivnih fajlova. Arhiva je ovdje rezervni izvor sadržaja.
+    // Pokreni poslije osnovnih CMS učitavanja.
     (async function () {
+      // Prvo pokušaj normalno učitati aktivni CMS sadržaj.
       await ucitajSveSekcije();
+      // Ako je arhiviranje uklonilo sadržaj iz aktivnih fajlova,
+      // odmah vrati posljednju arhiviranu verziju na stranicu.
       await vratiSadrzajIzArhiveAkoNedostaje();
-    })();
+    })().catch(err => console.error('Moja Doza učitavanje:', err));
 
   </script>  
