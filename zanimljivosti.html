@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' https: data: blob:; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://*.githubusercontent.com; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests; block-all-mixed-content">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.3.0/dist/purify.min.js"></script>
+  <title>Moja Doza - Zanimljivosti</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Poppins:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+
+    :root {
+      --bg-color: #0d0a1a;
+      --card-bg: #1a1530;
+      --accent-color: #d4af37;
+      --text-color: #f0e6ff;
+      --font-main: 'Poppins', sans-serif;
+      --font-heading: 'Cinzel', serif;
+    }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+      font-family: var(--font-main);
+    }
+    h1, h2, h3 { font-family: var(--font-heading); }
+    /* Stilovi za sekciju Zanimljivosti - Lista naslova */
+.zanimljivosti-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 850px;
+    margin: 0 auto;
+}
+
+.tekst-item {
+    background: var(--card-bg);
+    border: 1px solid var(--accent-color);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.tekst-naslov-btn {
+    width: 100%;
+    padding: 16px 20px;
+    background: transparent;
+    color: var(--accent-color);
+    border: none;
+    text-align: left;
+    font-size: 1.1rem;
+    font-family: var(--font-heading);
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+}
+
+.tekst-naslov-btn:hover {
+    background: rgba(212, 175, 55, 0.15);
+}
+
+.tekst-sadrzaj {
+    display: none;
+    padding: 20px;
+    border-top: 1px solid #332a52;
+    color: var(--text-color);
+    line-height: 1.7;
+    background-color: rgba(13, 10, 26, 0.5);
+}
+
+.tekst-item.otvoren .tekst-sadrzaj {
+    display: block;
+}
+    header {
+    background: rgba(26, 21, 48, 0.9);
+    padding: 20px;
+    text-align: center;
+    border-bottom: 2px solid var(--accent-color);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+    
+    header h1 { margin: 0; color: var(--accent-color); letter-spacing: 2px; }
+    nav a {
+      color: var(--text-color);
+      text-decoration: none;
+      margin: 0 15px;
+      font-weight: bold;
+      transition: color 0.3s;
+    }
+    nav a:hover { color: var(--accent-color); }
+    .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+    section { margin-bottom: 60px; padding-top: 20px; }
+    h2 { color: var(--accent-color); border-bottom: 1px solid var(--accent-color); padding-bottom: 10px; text-align: center; }
+    .tarot-box {
+      background: var(--card-bg);
+      border: 1px solid var(--accent-color);
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+    }
+    .card-display {
+      width: 210px;
+      height: 350px;
+      margin: 20px auto;
+      border: 2px solid var(--accent-color);
+      border-radius: 10px;
+      background-color: #251d42;
+      background-image: url('https://upload.wikimedia.org/wikipedia/commons/5/54/Rider-Waite_Tarot_Deck_Card_Back.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      transition: background-image 0.3s ease-in-out;
+    }
+    button.btn-draw {
+      background: var(--accent-color);
+      color: #000;
+      border: none;
+      padding: 12px 30px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.3s;
+    }
+    button.btn-draw:hover { transform: scale(1.05); background: #f3cf55; }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .card-item {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #332a52;
+    }
+    footer {
+      background: #06040b;
+      padding: 30px 20px;
+      text-align: center;
+      font-size: 0.9rem;
+      border-top: 1px solid #251d42;
+    }
+    .btn-audio {
+      background: transparent;
+      border: 1px solid var(--accent-color);
+      color: var(--text-color);
+      padding: 5px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-left: 15px;
+      transition: all 0.3s ease;
+    }
+    .btn-audio:hover { background: var(--accent-color); color: #000; }
+    .disclaimer-box {
+      background: #231b10;
+      border: 1px solid #8a6d1c;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-size: 0.85rem;
+    }
+    .dropdown { display: inline-block; position: relative; }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: var(--card-bg);
+      min-width: 150px;
+      box-shadow: 0px 8px 16px rgba(0,0,0,0.6);
+      border: 1px solid var(--accent-color);
+      border-radius: 8px;
+      z-index: 1000;
+      text-align: left;
+    }
+    .dropdown-content a {
+      color: var(--text-color);
+      padding: 8px 15px;
+      display: block;
+      margin: 0;
+      font-weight: normal;
+    }
+    .dropdown-content a:hover { background-color: #251d42; color: var(--accent-color); }
+    .dropdown:hover .dropdown-content { display: block; }
+
+    /* ANALIZE koristi isti vizuelni sistem kao Mesečni Horoskop. */
+    .analiza-kartica { min-height: 120px; }
+
+    /* BLOG */
+    .blog-lista {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .blog-item {
+      background: var(--card-bg);
+      border: 1px solid var(--accent-color);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .blog-naslov-btn {
+      width: 100%;
+      padding: 18px 20px;
+      background: transparent;
+      color: var(--accent-color);
+      border: none;
+      text-align: left;
+      font-size: 1.15rem;
+      font-family: var(--font-heading);
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .blog-naslov-btn:hover { background: rgba(212, 175, 55, 0.15); }
+    .blog-sadrzaj {
+      display: none;
+      padding: 20px;
+      border-top: 1px solid #332a52;
+      background-color: rgba(13, 10, 26, 0.5);
+    }
+    .blog-item.otvoren .blog-sadrzaj { display: block; }
+    .blog-slika {
+      display: block;
+      width: 100%;
+      max-height: 480px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin: 0 auto 18px;
+      border: 1px solid #332a52;
+    }
+    .blog-opis {
+      color: var(--text-color);
+      opacity: .9;
+      margin-bottom: 15px;
+    }
+
+    /* MOJA DOZA - komentari i brojač posjeta (dodatak, ne mijenja postojeće sekcije) */
+    .mojadoza-comments {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #332a52;
+    }
+    .mojadoza-comments-title {
+      color: var(--accent-color);
+      font-family: var(--font-heading);
+      font-size: 1.05rem;
+      margin: 0 0 14px;
+    }
+    .mojadoza-comment-form {
+      display: grid;
+      gap: 9px;
+      margin-bottom: 18px;
+    }
+    .mojadoza-comment-form input,
+    .mojadoza-comment-form textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #4b3b70;
+      border-radius: 8px;
+      background: #0f0b1d;
+      color: var(--text-color);
+      padding: 10px 12px;
+      font: inherit;
+      outline: none;
+    }
+    .mojadoza-comment-form input:focus,
+    .mojadoza-comment-form textarea:focus {
+      border-color: var(--accent-color);
+    }
+    .mojadoza-comment-form textarea {
+      min-height: 82px;
+      resize: vertical;
+    }
+    .mojadoza-comment-form-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .mojadoza-comment-submit {
+      border: 1px solid var(--accent-color);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--accent-color);
+      padding: 9px 15px;
+      cursor: pointer;
+      font: inherit;
+    }
+    .mojadoza-comment-submit:hover {
+      background: rgba(212, 175, 55, 0.12);
+    }
+    .mojadoza-comment-submit:disabled {
+      opacity: .55;
+      cursor: wait;
+    }
+    .mojadoza-comment-count {
+      font-size: .78rem;
+      opacity: .65;
+    }
+    .mojadoza-comment-msg {
+      min-height: 20px;
+      font-size: .86rem;
+      margin-top: 2px;
+    }
+    .mojadoza-comment-msg.error { color: #ff9f9f; }
+    .mojadoza-comment-msg.ok { color: #bde8c3; }
+    .mojadoza-comment {
+      padding: 12px 0;
+      border-top: 1px solid rgba(75,59,112,.55);
+    }
+    .mojadoza-comment:first-child { border-top: 0; }
+    .mojadoza-comment-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: baseline;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+    .mojadoza-comment-name {
+      color: var(--accent-color);
+      font-weight: 600;
+    }
+    .mojadoza-comment-date {
+      font-size: .74rem;
+      opacity: .55;
+    }
+    .mojadoza-comment-body {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .mojadoza-admin-reply {
+      margin: 9px 0 0 14px;
+      padding-left: 12px;
+      border-left: 2px solid var(--accent-color);
+    }
+    .mojadoza-admin-label {
+      color: var(--accent-color);
+      font-weight: 600;
+      font-size: .9rem;
+      margin-bottom: 3px;
+    }
+    .mojadoza-visit-counter {
+      position: fixed;
+      right: 14px;
+      bottom: 70px;
+      z-index: 9998;
+      background: rgba(26,21,48,.94);
+      border: 1px solid var(--accent-color);
+      color: var(--text-color);
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: .78rem;
+      box-shadow: 0 5px 20px rgba(0,0,0,.35);
+      backdrop-filter: blur(5px);
+    }
+    .mojadoza-honeypot {
+      position: absolute !important;
+      left: -10000px !important;
+      width: 1px !important;
+      height: 1px !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+  
+    /* Zanimljivosti kao samostalna stranica */
+    .zanimljivosti-page {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .zanimljivosti-back {
+      display: inline-block;
+      margin-bottom: 24px;
+      color: var(--accent-color);
+      text-decoration: none;
+      font-weight: bold;
+      border: 1px solid var(--accent-color);
+      border-radius: 20px;
+      padding: 8px 16px;
+      transition: all .2s ease;
+    }
+    .zanimljivosti-back:hover {
+      background: var(--accent-color);
+      color: #000;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>MOJA DOZA</h1>
+    <nav>
+      <a href="index.html">Početna</a>
+      <a href="zanimljivosti.html" style="color: var(--accent-color);">Zanimljivosti</a>
+      <a href="index.html#horoskop">Mesečni Horoskop</a>
+      <a href="index.html#analize">ANALIZE</a>
+      <a href="index.html#blog">Blog</a>
+      <a href="index.html#privatna-citanja">Privatna Čitanja</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="zanimljivosti-page">
+      <a class="zanimljivosti-back" href="index.html">← Nazad na početnu</a>
+
+      <section id="zanimljivosti" style="padding-top: 0;">
+        <h2>Zanimljivosti & Tekstovi</h2>
+        <div class="zanimljivosti-lista" id="sekcija-zanimljivosti">
+          <p>Učitavanje tekstova...</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 Mojadoza.com - Sva prava zadržana. | Zabavni sadržaj.</p>
+  </footer>
+
+  <script>
+    function sanitizujHtml(html) {
+      if (typeof DOMPurify === 'undefined') return String(html || '');
+      return DOMPurify.sanitize(String(html || ''), {
+        FORBID_TAGS: ['script','iframe','object','embed','form','base','meta','link'],
+        FORBID_ATTR: ['srcdoc']
+      });
+    }
+
+    function zastitiLinkove(root) {
+      if (!root) return;
+      root.querySelectorAll('a[href]').forEach(a => {
+        const href = (a.getAttribute('href') || '').trim().toLowerCase();
+        if (href.startsWith('javascript:') || href.startsWith('data:')) {
+          a.removeAttribute('href');
+          return;
+        }
+        try {
+          const url = new URL(a.href, window.location.href);
+          if (url.origin !== window.location.origin) {
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer nofollow';
+          }
+        } catch (_) {}
+      });
+    }
+
+    async function fetchGitHubFolder(folder) {
+      const response = await fetch(
+        `https://api.github.com/repos/missdiablo69/mojadoza3/contents/${folder}?_=${Date.now()}`,
+        { cache: 'no-store', headers: { 'Accept': 'application/vnd.github+json' } }
+      );
+      if (!response.ok) throw new Error(`GitHub folder nije dostupan: ${folder} (${response.status})`);
+      return await response.json();
+    }
+
+    async function fetchText(url) {
+      const response = await fetch(`${url}${url.includes('?') ? '&' : '?'}_=${Date.now()}`, {
+        cache: 'no-store'
+      });
+      if (!response.ok) throw new Error(`Fajl nije dostupan (${response.status})`);
+      return await response.text();
+    }
+
+    function parseCmsMarkdown(raw) {
+      const text = String(raw || '');
+      const match = text.match(/^---\s*\n([\s\S]*?)\n---\s*\n?([\s\S]*)$/);
+      if (!match) return { data: {}, content: text };
+      let data = {};
+      try {
+        if (typeof jsyaml !== 'undefined') data = jsyaml.load(match[1]) || {};
+      } catch (_) {
+        data = {};
+        match[1].split(/\r?\n/).forEach(line => {
+          const m = line.match(/^([^:]+):\s*(.*)$/);
+          if (m) data[m[1].trim()] = m[2].trim().replace(/^['"]|['"]$/g, '');
+        });
+      }
+      return { data: data || {}, content: match[2] || '' };
+    }
+
+    function normalizujTekst(value) {
+      if (value === null || value === undefined) return '';
+      if (typeof value === 'string') return value;
+      if (typeof value === 'object' && !Array.isArray(value)) {
+        return value.body ?? value.content ?? value.tekst ?? value.text ??
+               value.opis ?? value.description ?? value.value ?? '';
+      }
+      return String(value);
+    }
+
+    async function ucitajZanimljivosti() {
+      const kontejner = document.getElementById('sekcija-zanimljivosti');
+      if (!kontejner) return;
+
+      try {
+        const files = await fetchGitHubFolder('content/zanimljivosti');
+        const cmsFiles = files
+          .filter(f => f.type === 'file' && /\.(md|markdown|json)$/i.test(f.name))
+          .sort((a, b) => a.name.localeCompare(b.name, undefined, {
+            numeric: true,
+            sensitivity: 'base'
+          }));
+
+        if (!cmsFiles.length) {
+          kontejner.innerHTML = '<p>Trenutno nema objavljenih tekstova.</p>';
+          return;
+        }
+
+        const posts = [];
+
+        for (const file of cmsFiles) {
+          try {
+            const raw = await fetchText(file.download_url || file.html_url);
+            const data = /\.json$/i.test(file.name) ? JSON.parse(raw) : parseCmsMarkdown(raw);
+            const meta = (data && data.data && typeof data.data === 'object') ? data.data : data;
+
+            let naslov = normalizujTekst(
+              meta?.naslov ?? meta?.title ?? meta?.NASLOV ?? ''
+            ).trim();
+
+            if (!naslov) {
+              const headingMatch = String(data?.content || '').match(/^#{1,2}\s+(.+)$/m);
+              if (headingMatch) naslov = headingMatch[1].trim();
+            }
+
+            if (!naslov) {
+              naslov = file.name.replace(/\.(md|markdown|json)$/i, '')
+                .replace(/[-_]+/g, ' ').trim();
+            }
+
+            const tekst = normalizujTekst(
+              meta?.body ?? meta?.tekst ?? meta?.content ?? data?.content ?? ''
+            ).trim();
+
+            posts.push({ naslov, tekst });
+          } catch (e) {
+            console.warn('Zanimljivost nije učitana:', file.name, e);
+          }
+        }
+
+        if (!posts.length) {
+          kontejner.innerHTML = '<p>Sadržaj trenutno nije dostupan.</p>';
+          return;
+        }
+
+        kontejner.innerHTML = '';
+
+        posts.forEach(post => {
+          const item = document.createElement('div');
+          item.className = 'tekst-item';
+
+          const dugme = document.createElement('button');
+          dugme.type = 'button';
+          dugme.className = 'tekst-naslov-btn';
+          dugme.setAttribute('aria-expanded', 'false');
+
+          const naslovSpan = document.createElement('span');
+          naslovSpan.textContent = post.naslov;
+
+          const strelicaSpan = document.createElement('span');
+          strelicaSpan.className = 'strelica';
+          strelicaSpan.textContent = '▼';
+          strelicaSpan.setAttribute('aria-hidden', 'true');
+
+          dugme.appendChild(naslovSpan);
+          dugme.appendChild(strelicaSpan);
+
+          const sadrzaj = document.createElement('div');
+          sadrzaj.className = 'tekst-sadrzaj';
+          sadrzaj.setAttribute('aria-hidden', 'true');
+
+          if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+            sadrzaj.innerHTML = sanitizujHtml(marked.parse(post.tekst));
+          } else {
+            sadrzaj.textContent = post.tekst;
+          }
+
+          dugme.addEventListener('click', () => {
+            const otvoren = item.classList.contains('otvoren');
+
+            kontejner.querySelectorAll('.tekst-item.otvoren').forEach(other => {
+              if (other === item) return;
+              other.classList.remove('otvoren');
+              const otherButton = other.querySelector('.tekst-naslov-btn');
+              const otherArrow = other.querySelector('.strelica');
+              const otherContent = other.querySelector('.tekst-sadrzaj');
+              if (otherButton) otherButton.setAttribute('aria-expanded', 'false');
+              if (otherArrow) otherArrow.textContent = '▼';
+              if (otherContent) otherContent.setAttribute('aria-hidden', 'true');
+            });
+
+            if (!otvoren) {
+              item.classList.add('otvoren');
+              dugme.setAttribute('aria-expanded', 'true');
+              strelicaSpan.textContent = '▲';
+              sadrzaj.setAttribute('aria-hidden', 'false');
+            } else {
+              item.classList.remove('otvoren');
+              dugme.setAttribute('aria-expanded', 'false');
+              strelicaSpan.textContent = '▼';
+              sadrzaj.setAttribute('aria-hidden', 'true');
+            }
+          });
+
+          item.appendChild(dugme);
+          item.appendChild(sadrzaj);
+          kontejner.appendChild(item);
+        });
+
+        zastitiLinkove(kontejner);
+      } catch (e) {
+        console.error('Greška pri učitavanju zanimljivosti:', e);
+        kontejner.innerHTML = '<p>Sadržaj trenutno nije dostupan.</p>';
+      }
+    }
+
+    ucitajZanimljivosti();
+  </script>
+</body>
+</html>
