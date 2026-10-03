@@ -4,9 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' https: data: blob:; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://*.githubusercontent.com; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests; block-all-mixed-content">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://astro-charts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' https: data: blob:; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://*.githubusercontent.com https://astro-charts.com; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests; block-all-mixed-content">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="X-Frame-Options" content="DENY">
+  <script src="https://astro-charts.com/static/widget-coa.js"></script>
+  <script src="https://astro-charts.com/static/widget-moon.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.3.0/dist/purify.min.js"></script>
@@ -105,6 +107,52 @@
     .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
     section { margin-bottom: 60px; padding-top: 20px; }
     h2 { color: var(--accent-color); border-bottom: 1px solid var(--accent-color); padding-bottom: 10px; text-align: center; }
+
+    .karta-moon-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 330px);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .moon-sidebar {
+      background: rgba(20, 14, 35, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 16px;
+      padding: 14px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    .moon-sidebar h3 {
+      margin: 0 0 10px;
+      text-align: center;
+      color: var(--accent-color);
+      font-size: 1.05rem;
+      letter-spacing: 0.06em;
+    }
+
+    .moon-sidebar .moon-widget-wrap {
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .moon-sidebar .ac-widget-coa,
+    .moon-sidebar .ac-widget-moon {
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .moon-sidebar .ac-w-mark {
+      font-size: 11px;
+    }
+
+    @media (max-width: 760px) {
+      .karta-moon-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .tarot-box {
       background: var(--card-bg);
       border: 1px solid var(--accent-color);
@@ -514,12 +562,42 @@
     <!-- Sekcija: Karta Dana -->
     <section id="karta-dana">
       <h2>Karta Dana</h2>
-      <div class="tarot-box">
-        <p>Otkrijte šta vam zvezde i simboli poručuju danas. Opustite se i kliknite na dugme ispod.</p>
-        <div class="card-display" id="cardDisplay"></div>
-        <h3 id="cardName" style="color: var(--accent-color); margin-top: 15px;"></h3>
-        <p id="cardMeaning"></p>
-        <button class="btn-draw" onclick="drawCard()">Izvuci Kartu Dana</button>
+
+      <div class="karta-moon-layout">
+        <div class="tarot-box">
+          <p>Otkrijte šta vam zvezde i simboli poručuju danas. Opustite se i kliknite na dugme ispod.</p>
+          <div class="card-display" id="cardDisplay"></div>
+          <h3 id="cardName" style="color: var(--accent-color); margin-top: 15px;"></h3>
+          <p id="cardMeaning"></p>
+          <button class="btn-draw" onclick="drawCard()">Izvuci Kartu Dana</button>
+        </div>
+
+        <aside class="moon-sidebar" aria-label="Current Moon">
+          <h3>🌙 CURRENT MOON</h3>
+
+          <!-- Live planetary positions: Moon sign + exact degree -->
+          <div class="moon-widget-wrap">
+            <div class="ac-widget-coa"
+              geo_pk="17"
+              place="London, United Kingdom">
+              <a class="ac-w-mark" href="https://astro-charts.com/" target="_blank" rel="noopener">
+                <span class="ac-w-circle-a">A</span>Astro·Charts
+              </a>
+            </div>
+          </div>
+
+          <!-- Live lunar phase + illumination -->
+          <div class="moon-widget-wrap" style="margin-top:10px;">
+            <div class="ac-widget-moon"
+              geo_pk="17"
+              place="London, United Kingdom"
+              data-size="compact">
+              <a class="ac-w-mark" href="https://astro-charts.com/" target="_blank" rel="noopener">
+                <span class="ac-w-circle-a">A</span>Astro·Charts
+              </a>
+            </div>
+          </div>
+        </aside>
       </div>
     </section>
 
