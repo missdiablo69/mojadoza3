@@ -1,4 +1,11 @@
-/* Moja Doza — ARHIVA dugmad za Decap CMS */
+/* Moja Doza — ARHIVA dugmad za Decap CMS
+ *
+ * Funkcije:
+ * 1. ARHIVIRAJ kopira sadržaj u content/arhiva/
+ * 2. Tek nakon uspješnog arhiviranja uklanja to polje iz originalnog .md fajla
+ * 3. Ako brisanje originala ne uspije, arhivirana kopija ostaje sačuvana
+ */
+
 (function () {
   "use strict";
 
@@ -24,6 +31,10 @@
     "title"
   ]);
 
+  /* ---------------------------------------------------------
+     NETLIFY IDENTITY / TOKEN
+  --------------------------------------------------------- */
+
   function token() {
     try {
       return (
@@ -37,12 +48,16 @@
     }
   }
 
- function gatewayUrl(path) {
+  /* ---------------------------------------------------------
+     GIT GATEWAY
+  --------------------------------------------------------- */
+
+  function gatewayUrl(path) {
     return (
       "/.netlify/git/github/contents/" +
       path.replace(/^\/+/, "")
     );
-}
+  }
 
   async function gateway(method, path, body) {
     const t = token();
@@ -63,7 +78,11 @@
       options.body = JSON.stringify(body);
     }
 
-    const response = await fetch(gatewayUrl(path), options);
+    const response = await fetch(
+      gatewayUrl(path),
+      options
+    );
+
     const responseText = await response.text();
 
     let data;
@@ -78,12 +97,17 @@
 
     if (!response.ok) {
       throw new Error(
-        data.message || ("Git Gateway greška " + response.status)
+        data.message ||
+        ("Git Gateway greška " + response.status)
       );
     }
 
     return data;
   }
+
+  /* ---------------------------------------------------------
+     BASE64 UTF-8
+  --------------------------------------------------------- */
 
   function base64Utf8(text) {
     const bytes = new TextEncoder().encode(text);
@@ -95,6 +119,24 @@
 
     return btoa(binary);
   }
+
+  function decodeBase64Utf8(base64) {
+    const binary = atob(
+      String(base64 || "").replace(/\s/g, "")
+    );
+
+    const bytes = new Uint8Array(binary.length);
+
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+
+    return new TextDecoder("utf-8").decode(bytes);
+  }
+
+  /* ---------------------------------------------------------
+     BACK OFFICE RUTA
+  --------------------------------------------------------- */
 
   function routeInfo() {
     const hash = location.hash || "";
@@ -112,6 +154,10 @@
       slug: decodeURIComponent(match[2])
     };
   }
+
+  /* ---------------------------------------------------------
+     SOURCE FOLDERS
+  --------------------------------------------------------- */
 
   function sourceFolder(collection) {
     const folders = {
@@ -134,6 +180,10 @@
     return folder + "/" + slug + ".md";
   }
 
+  /* ---------------------------------------------------------
+     SIGURNO IME ZA ARHIVU
+  --------------------------------------------------------- */
+
   function safeName(text) {
     return String(text)
       .toLowerCase()
@@ -146,7 +196,11 @@
       .replace(/^-+|-+$/g, "");
   }
 
-  function makeArchivePath(collection, slug, field) {
+  function makeArchivePath(
+    collection,
+    slug,
+    field
+  ) {
     const stamp = new Date()
       .toISOString()
       .replace(/[-:.TZ]/g, "")
@@ -165,6 +219,10 @@
     );
   }
 
+  /* ---------------------------------------------------------
+     YAML FRONTMATTER ZA ARHIVU
+  --------------------------------------------------------- */
+
   function frontmatter(
     title,
     collection,
@@ -180,15 +238,29 @@
 
     return [
       "---",
-      'title: "' + escapeYaml(title) + '"',
-      'source: "' + escapeYaml(collection) + '"',
-      'field: "' + escapeYaml(field) + '"',
-      'original_file: "' + escapeYaml(originalFile) + '"',
-      'archived_at: "' + new Date().toISOString() + '"',
+      'title: "' +
+        escapeYaml(title) +
+        '"',
+      'source: "' +
+        escapeYaml(collection) +
+        '"',
+      'field: "' +
+        escapeYaml(field) +
+        '"',
+      'original_file: "' +
+        escapeYaml(originalFile) +
+        '"',
+      'archived_at: "' +
+        new Date().toISOString() +
+        '"',
       "---",
       ""
     ].join("\n");
   }
+
+  /* ---------------------------------------------------------
+     NORMALIZACIJA
+  --------------------------------------------------------- */
 
   function normalize(text) {
     return String(text || "")
@@ -197,6 +269,10 @@
       .trim();
   }
 
+  /* ---------------------------------------------------------
+     PREPOZNAVANJE POLJA
+  --------------------------------------------------------- */
+
   function fieldNameFromElement(element) {
     const name = normalize(
       element.getAttribute("name") ||
@@ -204,7 +280,9 @@
       ""
     );
 
-    const id = normalize(element.id || "");
+    const id = normalize(
+      element.id || ""
+    );
 
     const direct = {
       ovan: "ovan",
@@ -215,7 +293,7 @@
       devica: "devica",
       vaga: "vaga",
       skorpija: "skorpija",
-      škorpija: "skorpija",
+      "škorpija": "skorpija",
       strelac: "strelac",
       jarac: "jarac",
       vodolija: "vodolija",
@@ -252,7 +330,7 @@
       lav: "lav",
       devica: "devica",
       vaga: "vaga",
-      škorpija: "skorpija",
+      "škorpija": "skorpija",
       skorpija: "skorpija",
       strelac: "strelac",
       jarac: "jarac",
@@ -279,6 +357,10 @@
     return null;
   }
 
+  /* ---------------------------------------------------------
+     PRONALAŽENJE POLJA U CMS-U
+  --------------------------------------------------------- */
+
   function findFieldRoot(control) {
     let node = control;
 
@@ -301,15 +383,17 @@
   }
 
   function fieldValue(root) {
-    const textarea = root.querySelector("textarea");
+    const textarea =
+      root.querySelector("textarea");
 
     if (textarea) {
       return textarea.value;
     }
 
-    const editable = root.querySelector(
-      "[contenteditable='true']"
-    );
+    const editable =
+      root.querySelector(
+        "[contenteditable='true']"
+      );
 
     if (editable) {
       return (
@@ -319,9 +403,10 @@
       );
     }
 
-    const input = root.querySelector(
-      "input[type='text'], input:not([type])"
-    );
+    const input =
+      root.querySelector(
+        "input[type='text'], input:not([type])"
+      );
 
     if (input) {
       return input.value;
@@ -330,12 +415,209 @@
     return "";
   }
 
+  /* ---------------------------------------------------------
+     ČITANJE ORIGINALNOG GITHUB FAJLA
+  --------------------------------------------------------- */
+
+  async function getGithubFile(path) {
+    return await gateway(
+      "GET",
+      path
+    );
+  }
+
+  /* ---------------------------------------------------------
+     UKLANJANJE POLJA IZ MARKDOWN FAJLA
+     
+     Podržava:
+       ovan: |
+         tekst...
+
+       title: "Naslov"
+
+       body: |
+         tekst...
+  --------------------------------------------------------- */
+
+  function removeYamlField(
+    markdown,
+    fieldName
+  ) {
+    const lines =
+      String(markdown || "").split("\n");
+
+    if (
+      lines.length < 3 ||
+      lines[0].trim() !== "---"
+    ) {
+      throw new Error(
+        "Originalni fajl nema ispravan YAML frontmatter."
+      );
+    }
+
+    let frontmatterEnd = -1;
+
+    for (
+      let i = 1;
+      i < lines.length;
+      i++
+    ) {
+      if (
+        lines[i].trim() === "---"
+      ) {
+        frontmatterEnd = i;
+        break;
+      }
+    }
+
+    if (frontmatterEnd === -1) {
+      throw new Error(
+        "Nije pronađen kraj YAML frontmattera."
+      );
+    }
+
+    const wanted =
+      String(fieldName || "")
+        .trim()
+        .toLowerCase();
+
+    const output = [];
+
+    let removed = false;
+    let i = 0;
+
+    while (i <= frontmatterEnd) {
+      const line = lines[i];
+
+      if (
+        i > 0 &&
+        i < frontmatterEnd
+      ) {
+        const match =
+          line.match(
+            /^([A-Za-z0-9_-]+)\s*:(.*)$/
+          );
+
+        if (
+          match &&
+          match[1].toLowerCase() === wanted
+        ) {
+          removed = true;
+
+          i++;
+
+          /*
+           * Preskoči sve nastavne YAML linije
+           * dok ne naiđemo na sljedeći top-level
+           * field ili kraj frontmattera.
+           */
+          while (
+            i < frontmatterEnd
+          ) {
+            const nextLine =
+              lines[i];
+
+            const nextField =
+              nextLine.match(
+                /^([A-Za-z0-9_-]+)\s*:/
+              );
+
+            if (nextField) {
+              break;
+            }
+
+            i++;
+          }
+
+          continue;
+        }
+      }
+
+      output.push(line);
+      i++;
+    }
+
+    if (!removed) {
+      throw new Error(
+        'Polje "' +
+        fieldName +
+        '" nije pronađeno u originalnom fajlu.'
+      );
+    }
+
+    return output.join("\n");
+  }
+
+  /* ---------------------------------------------------------
+     AŽURIRANJE ORIGINALNOG GITHUB FAJLA
+  --------------------------------------------------------- */
+
+  async function removeFieldFromOriginal(
+    originalFile,
+    fieldName
+  ) {
+    const file =
+      await getGithubFile(
+        originalFile
+      );
+
+    if (
+      !file ||
+      !file.content ||
+      !file.sha
+    ) {
+      throw new Error(
+        "GitHub nije vratio sadržaj ili SHA originalnog fajla."
+      );
+    }
+
+    const originalMarkdown =
+      decodeBase64Utf8(
+        file.content
+      );
+
+    const updatedMarkdown =
+      removeYamlField(
+        originalMarkdown,
+        fieldName
+      );
+
+    await gateway(
+      "PUT",
+      originalFile,
+      {
+        message:
+          "Ukloni arhivirani sadržaj: " +
+          originalFile +
+          " [" +
+          fieldName +
+          "]",
+
+        content:
+          base64Utf8(
+            updatedMarkdown
+          ),
+
+        sha:
+          file.sha,
+
+        branch:
+          BRANCH
+      }
+    );
+  }
+
+  /* ---------------------------------------------------------
+     GLAVNA FUNKCIJA ARHIVIRANJA
+  --------------------------------------------------------- */
+
   async function archiveField(
     fieldName,
     currentValue,
     button
   ) {
-    const info = routeInfo();
+    const info =
+      routeInfo();
 
     if (!info) {
       alert(
@@ -344,7 +626,10 @@
       return;
     }
 
-    const folder = sourceFolder(info.collection);
+    const folder =
+      sourceFolder(
+        info.collection
+      );
 
     if (!folder) {
       alert(
@@ -353,36 +638,49 @@
       return;
     }
 
-    const value = String(currentValue || "").trim();
+    const value =
+      String(
+        currentValue || ""
+      ).trim();
 
     if (!value) {
-      alert("Ovo polje je prazno.");
+      alert(
+        "Ovo polje je prazno."
+      );
       return;
     }
 
-    const confirmed = confirm(
-      "Arhivirati ovaj tekst?\n\n" +
-      "Sekcija: " +
-      info.collection +
-      "\n" +
-      "Polje: " +
-      fieldName +
-      "\n\n" +
-      "Tekst će biti sačuvan u ARHIVU."
-    );
+    const confirmed =
+      confirm(
+        "Arhivirati ovaj tekst?\n\n" +
+        "Sekcija: " +
+        info.collection +
+        "\n" +
+        "Polje: " +
+        fieldName +
+        "\n\n" +
+        "Tekst će prvo biti sačuvan u ARHIVU, " +
+        "a zatim uklonjen iz aktivnog sadržaja."
+      );
 
     if (!confirmed) {
       return;
     }
 
     button.disabled = true;
-    button.textContent = "ARHIVIRAM...";
+    button.textContent =
+      "ARHIVIRAM...";
 
     try {
-      const originalFile = guessFile(
-        info.collection,
-        info.slug
-      );
+      /* ---------------------------------------------
+         1. ODREDI ORIGINALNI FAJL
+      --------------------------------------------- */
+
+      const originalFile =
+        guessFile(
+          info.collection,
+          info.slug
+        );
 
       if (!originalFile) {
         throw new Error(
@@ -390,18 +688,26 @@
         );
       }
 
-      const archivePath = makeArchivePath(
-        info.collection,
-        info.slug,
-        fieldName
-      );
+      /* ---------------------------------------------
+         2. KREIRAJ PUTANJU ARHIVE
+      --------------------------------------------- */
+
+      const archivePath =
+        makeArchivePath(
+          info.collection,
+          info.slug,
+          fieldName
+        );
 
       const title =
-        info.slug.replace(/-/g, " ") +
+        info.slug.replace(
+          /-/g,
+          " "
+        ) +
         " — " +
         fieldName;
 
-      const content =
+      const archiveContent =
         frontmatter(
           title,
           info.collection,
@@ -410,6 +716,10 @@
         ) +
         value +
         "\n";
+
+      /* ---------------------------------------------
+         3. PRVO SAČUVAJ U ARHIVU
+      --------------------------------------------- */
 
       await gateway(
         "PUT",
@@ -424,40 +734,101 @@
             fieldName +
             "]",
 
-          content: base64Utf8(content),
+          content:
+            base64Utf8(
+              archiveContent
+            ),
 
-          branch: BRANCH
+          branch:
+            BRANCH
         }
       );
 
-      button.textContent = "✓ ARHIVIRANO";
-      button.style.background = "#2e7d32";
+      /* ---------------------------------------------
+         4. TEK SADA UKLONI IZ ORIGINALA
+      --------------------------------------------- */
+
+      button.textContent =
+        "UKLANJAM IZ AKTIVNOG...";
+
+      try {
+        await removeFieldFromOriginal(
+          originalFile,
+          fieldName
+        );
+      } catch (removeError) {
+        console.error(
+          "Arhiva je uspješna, ali uklanjanje originala nije:",
+          removeError
+        );
+
+        alert(
+          "Tekst je uspješno spremljen u ARHIVU.\n\n" +
+          "Ali originalni tekst NIJE uklonjen iz aktivnog sadržaja.\n\n" +
+          "Razlog:\n" +
+          removeError.message +
+          "\n\n" +
+          "Arhivirana kopija je sačuvana."
+        );
+
+        button.textContent =
+          "✓ U ARHIVI";
+
+        button.style.background =
+          "#2e7d32";
+
+        return;
+      }
+
+      /* ---------------------------------------------
+         5. SVE USPJEŠNO
+      --------------------------------------------- */
+
+      button.textContent =
+        "✓ ARHIVIRANO";
+
+      button.style.background =
+        "#2e7d32";
 
       alert(
-        "Tekst je uspješno sačuvan u ARHIVU.\n\n" +
-        "Arhivirana kopija je sada spremljena u content/arhiva."
+        "Uspješno!\n\n" +
+        "1. Tekst je spremljen u content/arhiva.\n" +
+        "2. Tekst je uklonjen iz aktivnog sadržaja.\n\n" +
+        "Arhiva sada čuva originalnu kopiju."
       );
 
     } catch (error) {
-      console.error(error);
+      console.error(
+        "ARHIVIRANJE GREŠKA:",
+        error
+      );
 
       alert(
         "Arhiviranje nije uspjelo:\n\n" +
         error.message
       );
 
-      button.textContent = "ARHIVIRAJ";
+      button.textContent =
+        "ARHIVIRAJ";
 
     } finally {
-      button.disabled = false;
+      button.disabled =
+        false;
     }
   }
+
+  /* ---------------------------------------------------------
+     DODAVANJE DUGMETA
+  --------------------------------------------------------- */
 
   function addButtonForControl(
     control,
     fieldName
   ) {
-    const root = findFieldRoot(control);
+    const root =
+      findFieldRoot(
+        control
+      );
 
     if (!root) {
       return;
@@ -469,12 +840,16 @@
       return;
     }
 
-    root.dataset.moArhiva = "1";
+    root.dataset.moArhiva =
+      "1";
 
     const button =
-      document.createElement("button");
+      document.createElement(
+        "button"
+      );
 
-    button.type = "button";
+    button.type =
+      "button";
 
     button.textContent =
       "ARHIVIRAJ";
@@ -495,12 +870,11 @@
       "z-index:9999;";
 
     button.title =
-      "Sačuvaj ovaj tekst u Arhivu";
+      "Sačuvaj ovaj tekst u Arhivu i ukloni ga iz aktivnog sadržaja";
 
     button.addEventListener(
       "click",
       function (event) {
-
         event.preventDefault();
         event.stopPropagation();
 
@@ -513,23 +887,27 @@
     );
 
     const label =
-      root.querySelector("label") ||
+      root.querySelector(
+        "label"
+      ) ||
       Array.from(
         root.querySelectorAll("*")
-      ).find(function (element) {
+      ).find(
+        function (element) {
+          const text =
+            normalize(
+              element.textContent
+            );
 
-        const text =
-          normalize(
-            element.textContent
+          return (
+            text &&
+            fieldNameFromText(
+              text
+            ) === fieldName &&
+            element.children.length === 0
           );
-
-        return (
-          text &&
-          fieldNameFromText(text) ===
-            fieldName &&
-          element.children.length === 0
-        );
-      });
+        }
+      );
 
     if (
       label &&
@@ -555,12 +933,19 @@
     }
   }
 
+  /* ---------------------------------------------------------
+     PRONAĐI SVA POLJA
+  --------------------------------------------------------- */
+
   function addButtons() {
-    const info = routeInfo();
+    const info =
+      routeInfo();
 
     if (
       !info ||
-      !sourceFolder(info.collection)
+      !sourceFolder(
+        info.collection
+      )
     ) {
       return;
     }
@@ -575,7 +960,6 @@
 
     controls.forEach(
       function (control) {
-
         const fieldName =
           fieldNameFromElement(
             control
@@ -583,7 +967,9 @@
 
         if (
           fieldName &&
-          FIELD_NAMES.has(fieldName)
+          FIELD_NAMES.has(
+            fieldName
+          )
         ) {
           addButtonForControl(
             control,
@@ -594,10 +980,11 @@
     );
 
     document
-      .querySelectorAll("label")
+      .querySelectorAll(
+        "label"
+      )
       .forEach(
         function (label) {
-
           const fieldName =
             fieldNameFromText(
               label.textContent
@@ -613,7 +1000,9 @@
           }
 
           const root =
-            findFieldRoot(label);
+            findFieldRoot(
+              label
+            );
 
           const control =
             root.querySelector(
@@ -632,6 +1021,10 @@
         }
       );
   }
+
+  /* ---------------------------------------------------------
+     POKRETANJE
+  --------------------------------------------------------- */
 
   function start() {
     addButtons();
@@ -661,14 +1054,11 @@
     document.readyState ===
     "loading"
   ) {
-
     document.addEventListener(
       "DOMContentLoaded",
       start
     );
-
   } else {
-
     start();
   }
 
