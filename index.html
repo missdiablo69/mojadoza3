@@ -490,9 +490,9 @@
         </div>
       </div>
       <div class="dropdown" id="zanimljivosti-dropdown">
-        <a href="#zanimljivosti" class="dropbtn">Zanimljivosti ▾</a>
+        <a href="zanimljivosti.html" class="dropbtn">Zanimljivosti ▾</a>
         <div class="dropdown-content" id="zanimljivosti-dropdown-content">
-          <a href="#zanimljivosti">Učitavanje...</a>
+          <a href="zanimljivosti.html">Učitavanje...</a>
         </div>
       </div>
       <div class="dropdown" id="blog-dropdown">
@@ -558,14 +558,6 @@
         <div class="card-item analiza-kartica" id="analiza-kartica-jarac"><h3>Jarac</h3><div id="analiza-jarac"><p>Učitavanje...</p></div></div>
         <div class="card-item analiza-kartica" id="analiza-kartica-vodolija"><h3>Vodolija</h3><div id="analiza-vodolija"><p>Učitavanje...</p></div></div>
         <div class="card-item analiza-kartica" id="analiza-kartica-ribe"><h3>Ribe</h3><div id="analiza-ribe"><p>Učitavanje...</p></div></div>
-      </div>
-    </section>
-
-    <!-- Sekcija: Zanimljivosti -->
-    <section id="zanimljivosti">
-      <h2>Zanimljivosti & Tekstovi</h2>
-      <div class="grid-3" id="sekcija-zanimljivosti">
-        <p>Učitavanje tekstova...</p>
       </div>
     </section>
 
@@ -1003,7 +995,7 @@
 
         if (!cmsFiles.length) {
           kontejner.innerHTML = '<p>Trenutno nema objavljenih tekstova.</p>';
-          if (dropdown) dropdown.innerHTML = '<a href="#zanimljivosti">Trenutno nema objava</a>';
+          if (dropdown) dropdown.innerHTML = '<a href="zanimljivosti.html">Trenutno nema objava</a>';
           return;
         }
 
@@ -1054,7 +1046,7 @@
 
         if (!posts.length) {
           kontejner.innerHTML = '<p>Trenutno nema objavljenih tekstova.</p>';
-          if (dropdown) dropdown.innerHTML = '<a href="#zanimljivosti">Trenutno nema objava</a>';
+          if (dropdown) dropdown.innerHTML = '<a href="zanimljivosti.html">Trenutno nema objava</a>';
           return;
         }
 
@@ -1151,7 +1143,7 @@
       } catch (e) {
         console.error('Greška pri učitavanju zanimljivosti:', e);
         kontejner.innerHTML = '<p>Sadržaj trenutno nije dostupan.</p>';
-        if (dropdown) dropdown.innerHTML = '<a href="#zanimljivosti">Sadržaj trenutno nije dostupan</a>';
+        if (dropdown) dropdown.innerHTML = '<a href="zanimljivosti.html">Sadržaj trenutno nije dostupan</a>';
       }
     }
 
