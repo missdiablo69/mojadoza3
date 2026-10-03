@@ -8,6 +8,7 @@
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="X-Frame-Options" content="DENY">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.3.0/dist/purify.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
   <title>Moja Doza - Tarot & Mesečni Horoskop</title>
@@ -201,6 +202,9 @@
     .dropdown-content a:hover { background-color: #251d42; color: var(--accent-color); }
     .dropdown:hover .dropdown-content { display: block; }
 
+    /* ANALIZE koristi isti vizuelni sistem kao Mesečni Horoskop. */
+    .analiza-kartica { min-height: 120px; }
+
     /* BLOG */
     .blog-lista {
       display: flex;
@@ -252,6 +256,137 @@
       opacity: .9;
       margin-bottom: 15px;
     }
+
+    /* MOJA DOZA - komentari i brojač posjeta (dodatak, ne mijenja postojeće sekcije) */
+    .mojadoza-comments {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #332a52;
+    }
+    .mojadoza-comments-title {
+      color: var(--accent-color);
+      font-family: var(--font-heading);
+      font-size: 1.05rem;
+      margin: 0 0 14px;
+    }
+    .mojadoza-comment-form {
+      display: grid;
+      gap: 9px;
+      margin-bottom: 18px;
+    }
+    .mojadoza-comment-form input,
+    .mojadoza-comment-form textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #4b3b70;
+      border-radius: 8px;
+      background: #0f0b1d;
+      color: var(--text-color);
+      padding: 10px 12px;
+      font: inherit;
+      outline: none;
+    }
+    .mojadoza-comment-form input:focus,
+    .mojadoza-comment-form textarea:focus {
+      border-color: var(--accent-color);
+    }
+    .mojadoza-comment-form textarea {
+      min-height: 82px;
+      resize: vertical;
+    }
+    .mojadoza-comment-form-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .mojadoza-comment-submit {
+      border: 1px solid var(--accent-color);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--accent-color);
+      padding: 9px 15px;
+      cursor: pointer;
+      font: inherit;
+    }
+    .mojadoza-comment-submit:hover {
+      background: rgba(212, 175, 55, 0.12);
+    }
+    .mojadoza-comment-submit:disabled {
+      opacity: .55;
+      cursor: wait;
+    }
+    .mojadoza-comment-count {
+      font-size: .78rem;
+      opacity: .65;
+    }
+    .mojadoza-comment-msg {
+      min-height: 20px;
+      font-size: .86rem;
+      margin-top: 2px;
+    }
+    .mojadoza-comment-msg.error { color: #ff9f9f; }
+    .mojadoza-comment-msg.ok { color: #bde8c3; }
+    .mojadoza-comment {
+      padding: 12px 0;
+      border-top: 1px solid rgba(75,59,112,.55);
+    }
+    .mojadoza-comment:first-child { border-top: 0; }
+    .mojadoza-comment-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: baseline;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+    .mojadoza-comment-name {
+      color: var(--accent-color);
+      font-weight: 600;
+    }
+    .mojadoza-comment-date {
+      font-size: .74rem;
+      opacity: .55;
+    }
+    .mojadoza-comment-body {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .mojadoza-admin-reply {
+      margin: 9px 0 0 14px;
+      padding-left: 12px;
+      border-left: 2px solid var(--accent-color);
+    }
+    .mojadoza-admin-label {
+      color: var(--accent-color);
+      font-weight: 600;
+      font-size: .9rem;
+      margin-bottom: 3px;
+    }
+    .mojadoza-visit-counter {
+      position: fixed;
+      right: 14px;
+      bottom: 70px;
+      z-index: 9998;
+      background: rgba(26,21,48,.94);
+      border: 1px solid var(--accent-color);
+      color: var(--text-color);
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: .78rem;
+      box-shadow: 0 5px 20px rgba(0,0,0,.35);
+      backdrop-filter: blur(5px);
+    }
+    .mojadoza-honeypot {
+      position: absolute !important;
+      left: -10000px !important;
+      width: 1px !important;
+      height: 1px !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
   </style>
 
   <script>
@@ -337,10 +472,27 @@
           <a href="#horoskop" onclick="prikaziZnak('ribe')">Ribe</a>
         </div>
       </div>
+      <div class="dropdown">
+        <a href="#analize" class="dropbtn">ANALIZE ▾</a>
+        <div class="dropdown-content">
+          <a href="#analize" onclick="prikaziAnalizu('ovan')">Ovan</a>
+          <a href="#analize" onclick="prikaziAnalizu('bik')">Bik</a>
+          <a href="#analize" onclick="prikaziAnalizu('blizanci')">Blizanci</a>
+          <a href="#analize" onclick="prikaziAnalizu('rak')">Rak</a>
+          <a href="#analize" onclick="prikaziAnalizu('lav')">Lav</a>
+          <a href="#analize" onclick="prikaziAnalizu('devica')">Devica</a>
+          <a href="#analize" onclick="prikaziAnalizu('vaga')">Vaga</a>
+          <a href="#analize" onclick="prikaziAnalizu('skorpija')">Škorpija</a>
+          <a href="#analize" onclick="prikaziAnalizu('strelac')">Strelac</a>
+          <a href="#analize" onclick="prikaziAnalizu('jarac')">Jarac</a>
+          <a href="#analize" onclick="prikaziAnalizu('vodolija')">Vodolija</a>
+          <a href="#analize" onclick="prikaziAnalizu('ribe')">Ribe</a>
+        </div>
+      </div>
       <div class="dropdown" id="zanimljivosti-dropdown">
-        <a href="#zanimljivosti" class="dropbtn">Zanimljivosti ▾</a>
+        <a href="zanimljivosti.html" class="dropbtn">Zanimljivosti ▾</a>
         <div class="dropdown-content" id="zanimljivosti-dropdown-content">
-          <a href="#zanimljivosti">Učitavanje...</a>
+          <a href="zanimljivosti.html">Učitavanje...</a>
         </div>
       </div>
       <div class="dropdown" id="blog-dropdown">
@@ -390,11 +542,22 @@
       </div>
     </section>
 
-    <!-- Sekcija: Zanimljivosti -->
-    <section id="zanimljivosti">
-      <h2>Zanimljivosti & Tekstovi</h2>
-      <div class="grid-3" id="sekcija-zanimljivosti">
-        <p>Učitavanje tekstova...</p>
+    <!-- Sekcija: ANALIZE -->
+    <section id="analize">
+      <h2>ANALIZE</h2>
+      <div class="grid-3">
+        <div class="card-item analiza-kartica" id="analiza-kartica-ovan"><h3>Ovan</h3><div id="analiza-ovan"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-bik"><h3>Bik</h3><div id="analiza-bik"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-blizanci"><h3>Blizanci</h3><div id="analiza-blizanci"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-rak"><h3>Rak</h3><div id="analiza-rak"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-lav"><h3>Lav</h3><div id="analiza-lav"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-devica"><h3>Devica</h3><div id="analiza-devica"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-vaga"><h3>Vaga</h3><div id="analiza-vaga"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-skorpija"><h3>Škorpija</h3><div id="analiza-skorpija"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-strelac"><h3>Strelac</h3><div id="analiza-strelac"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-jarac"><h3>Jarac</h3><div id="analiza-jarac"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-vodolija"><h3>Vodolija</h3><div id="analiza-vodolija"><p>Učitavanje...</p></div></div>
+        <div class="card-item analiza-kartica" id="analiza-kartica-ribe"><h3>Ribe</h3><div id="analiza-ribe"><p>Učitavanje...</p></div></div>
       </div>
     </section>
 
@@ -664,56 +827,152 @@
       return { data: data || {}, content: match[2] || '' };
     }
 
-    async function ucitajHoroskop() {
-      const znaci = [
-        'ovan', 'bik', 'blizanci', 'rak', 'lav', 'devica',
-        'vaga', 'skorpija', 'strelac', 'jarac', 'vodolija', 'ribe'
-      ];
+    const ZNACI = [
+      'ovan', 'bik', 'blizanci', 'rak', 'lav', 'devica',
+      'vaga', 'skorpija', 'strelac', 'jarac', 'vodolija', 'ribe'
+    ];
 
-      try {
-        const files = await fetchGitHubFolder('content/horoskop');
-        const cmsFiles = files
-          .filter(f => f.type === 'file' && /\.(md|markdown|json)$/i.test(f.name))
-          .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+    // Biramo najnoviji CMS dokument po datumu iz imena fajla.
+    // Ako su datumi isti, posljednji naziv po sortiranju je pobjednik.
+    function datumIzNazivaFajla(name) {
+      const m = String(name || '').match(/(20\d{2})[-_](\d{1,2})[-_](\d{1,2})/);
+      if (!m) return 0;
+      const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+      return Number.isNaN(d.getTime()) ? 0 : d.getTime();
+    }
 
-        if (!cmsFiles.length) throw new Error('Nema horoskopskih fajlova.');
+    function izaberiNajnovijiCmsFajl(files) {
+      return files
+        .slice()
+        .sort((a, b) => {
+          const da = datumIzNazivaFajla(a.name);
+          const db = datumIzNazivaFajla(b.name);
+          if (da !== db) return da - db;
+          return String(a.name).localeCompare(String(b.name), undefined, {
+            numeric: true,
+            sensitivity: 'base'
+          });
+        })
+        .pop();
+    }
 
-        const latest = cmsFiles[cmsFiles.length - 1];
-        const raw = await fetchText(latest.download_url || latest.html_url);
+    async function ucitajCmsDokument(folder, tip) {
+      const files = await fetchGitHubFolder(folder);
+      const cmsFiles = files
+        .filter(f => f.type === 'file' && /\.(md|markdown|json)$/i.test(f.name));
 
-        let data;
-        if (/\.json$/i.test(latest.name)) {
-          try {
-            data = JSON.parse(raw);
-          } catch (e) {
-            throw new Error(`Horoskop JSON nije ispravan: ${latest.name}`);
-          }
-        } else {
-          data = parseCmsMarkdown(raw);
+      if (!cmsFiles.length) {
+        throw new Error(`Nema ${tip} fajlova u ${folder}.`);
+      }
+
+      const latest = izaberiNajnovijiCmsFajl(cmsFiles);
+      const raw = await fetchText(latest.download_url || latest.html_url);
+
+      let data;
+      if (/\.json$/i.test(latest.name)) {
+        try {
+          data = JSON.parse(raw);
+        } catch (e) {
+          throw new Error(`${tip} JSON nije ispravan: ${latest.name}`);
         }
+      } else {
+        data = parseCmsMarkdown(raw);
+      }
 
-        znaci.forEach(znak => {
+      return { data, file: latest };
+    }
+
+    async function ucitajHoroskop() {
+      try {
+        const rezultat = await ucitajCmsDokument('content/horoskop', 'Horoskop');
+        const data = rezultat.data?.data && typeof rezultat.data.data === 'object'
+          ? rezultat.data.data
+          : rezultat.data;
+        const cmsContent = rezultat.data?.content || '';
+
+        ZNACI.forEach(znak => {
           const el = document.getElementById(`horoskop-${znak}`);
           if (!el) return;
 
-          // Decap konfiguracija ima posebno polje za svaki znak.
-          const tekst = data[znak];
+          const tekst = nadjiZnak(data, znak);
 
           if (tekst) {
             renderujTekst(el, tekst);
-          } else if (data.body || data.content) {
-            // Fallback za dokumente koji imaju samo jedno opšte tijelo.
-            renderujTekst(el, data.body || data.content);
+          } else if (data.body || data.content || cmsContent) {
+            renderujTekst(el, data.body || data.content || cmsContent);
           } else {
             el.innerHTML = '<p>Sadržaj trenutno nije dostupan.</p>';
           }
         });
-
       } catch (e) {
         console.error('Greška pri učitavanju horoskopa:', e);
-        znaci.forEach(znak => {
+        ZNACI.forEach(znak => {
           const el = document.getElementById(`horoskop-${znak}`);
           if (el) el.innerHTML = '<p>Sadržaj trenutno nije dostupan.</p>';
+        });
+      }
+    }
+
+    async function ucitajAnalize() {
+      const praznaPoruka = '<p>Analiza trenutno nije dostupna.</p>';
+
+      try {
+        // ANALIZE čitamo direktno iz istog GitHub repozitorijuma koji koristi Back Office.
+        // Prvo uzimamo spisak fajlova iz content/analize/, a zatim stvarni .md fajl.
+        // Ovo je namjerno odvojeno od horoskopa da se postojeći sadržaj ne mijenja.
+        const files = await fetchGitHubFolder('content/analize');
+        const cmsFiles = files
+          .filter(f => f && f.type === 'file' && /\.(md|markdown|json)$/i.test(f.name));
+
+        if (!cmsFiles.length) {
+          throw new Error('Back Office folder content/analize je prazan ili nije pronađen.');
+        }
+
+        const latest = izaberiNajnovijiCmsFajl(cmsFiles);
+        if (!latest) throw new Error('Nije pronađen nijedan ANALIZE dokument.');
+
+        // GitHub API download_url je direktan sadržaj fajla koji je Back Office sačuvao.
+        const raw = await fetchText(
+          latest.download_url ||
+          `https://raw.githubusercontent.com/missdiablo69/mojadoza3/main/content/analize/${encodeURIComponent(latest.name)}`
+        );
+
+        let parsed;
+        if (/\.json$/i.test(latest.name)) {
+          parsed = JSON.parse(raw);
+        } else {
+          parsed = parseCmsMarkdown(raw);
+        }
+
+        // parseCmsMarkdown vraća { data: {...}, content: '...' }.
+        // Decap CMS je u našem fajlu sačuvao svaki znak kao YAML polje:
+        // ovan, bik, blizanci ... Zato uzimamo parsed.data, ne parsed.
+        const data = parsed && parsed.data && typeof parsed.data === 'object'
+          ? parsed.data
+          : (parsed && typeof parsed === 'object' ? parsed : {});
+
+        console.log('ANALIZE učitane iz Back Office-a:', latest.name, Object.keys(data));
+
+        ZNACI.forEach(znak => {
+          const el = document.getElementById(`analiza-${znak}`);
+          if (!el) return;
+
+          const vrijednost = nadjiZnak(data, znak);
+          const tekst = normalizujTekst(vrijednost).trim();
+
+          if (tekst) {
+            renderujTekst(el, tekst);
+          } else {
+            // Vodolija i Ribe su namjerno ostavljeni kao prazna polja dok ih
+            // korisnica ne unese u Back Office. Ostalih 10 znakova prikazuju sadržaj.
+            el.innerHTML = praznaPoruka;
+          }
+        });
+      } catch (e) {
+        console.error('Greška pri učitavanju analiza iz Back Office-a:', e);
+        ZNACI.forEach(znak => {
+          const el = document.getElementById(`analiza-${znak}`);
+          if (el) el.innerHTML = praznaPoruka;
         });
       }
     }
@@ -736,7 +995,7 @@
 
         if (!cmsFiles.length) {
           kontejner.innerHTML = '<p>Trenutno nema objavljenih tekstova.</p>';
-          if (dropdown) dropdown.innerHTML = '<a href="#zanimljivosti">Trenutno nema objava</a>';
+          if (dropdown) dropdown.innerHTML = '<a href="zanimljivosti.html">Trenutno nema objava</a>';
           return;
         }
 
@@ -787,7 +1046,7 @@
 
         if (!posts.length) {
           kontejner.innerHTML = '<p>Trenutno nema objavljenih tekstova.</p>';
-          if (dropdown) dropdown.innerHTML = '<a href="#zanimljivosti">Trenutno nema objava</a>';
+          if (dropdown) dropdown.innerHTML = '<a href="zanimljivosti.html">Trenutno nema objava</a>';
           return;
         }
 
@@ -884,7 +1143,7 @@
       } catch (e) {
         console.error('Greška pri učitavanju zanimljivosti:', e);
         kontejner.innerHTML = '<p>Sadržaj trenutno nije dostupan.</p>';
-        if (dropdown) dropdown.innerHTML = '<a href="#zanimljivosti">Sadržaj trenutno nije dostupan</a>';
+        if (dropdown) dropdown.innerHTML = '<a href="zanimljivosti.html">Sadržaj trenutno nije dostupan</a>';
       }
     }
 
@@ -963,6 +1222,7 @@
               opis,
               slika,
               tekst: body || opis,
+              fileName: file.name,
               id: `blog-${i}`
             });
           } catch (fileError) {
@@ -1053,6 +1313,12 @@
           }
           sadrzaj.appendChild(tekst);
 
+          // Dodatak: komentari ispod teksta bloga. Postojeći blog markup ostaje isti.
+          dodajKomentareZaBlog(sadrzaj, {
+            postKey: `blog:${String(post.fileName || post.naslov || '').trim()}`,
+            postTitle: post.naslov
+          });
+
           dugme.addEventListener('click', () => {
             const otvoren = item.classList.contains('otvoren');
 
@@ -1099,6 +1365,260 @@
       }
     }
 
+
+    // ------------------------------------------------------------
+    // MOJA DOZA - NETLIFY KOMENTARI + BROJAČ POSJETA
+    // Ovo je potpuno odvojeno od postojećeg CMS/blog sistema.
+    // ------------------------------------------------------------
+    const MD_COMMENT_MAX = 200;
+    const MD_NICK_MAX = 40;
+
+    function mdEsc(text) {
+      return String(text ?? '');
+    }
+
+    function mdFormatDate(value) {
+      try {
+        return new Intl.DateTimeFormat('sr-Latn', {
+          dateStyle: 'short',
+          timeStyle: 'short'
+        }).format(new Date(value));
+      } catch (_) {
+        return '';
+      }
+    }
+
+    function napraviKomentarEl(c) {
+      const wrap = document.createElement('div');
+      wrap.className = 'mojadoza-comment';
+
+      const head = document.createElement('div');
+      head.className = 'mojadoza-comment-head';
+
+      const name = document.createElement('span');
+      name.className = 'mojadoza-comment-name';
+      name.textContent = `${mdEsc(c.nickname)}:`;
+
+      const date = document.createElement('span');
+      date.className = 'mojadoza-comment-date';
+      date.textContent = mdFormatDate(c.created_at);
+
+      head.append(name, date);
+
+      const body = document.createElement('div');
+      body.className = 'mojadoza-comment-body';
+      body.textContent = c.body || '';
+
+      wrap.append(head, body);
+
+      if (c.admin_reply) {
+        const reply = document.createElement('div');
+        reply.className = 'mojadoza-admin-reply';
+
+        const label = document.createElement('div');
+        label.className = 'mojadoza-admin-label';
+        label.textContent = '↳ Moja Doza:';
+
+        const replyBody = document.createElement('div');
+        replyBody.className = 'mojadoza-comment-body';
+        replyBody.textContent = c.admin_reply;
+
+        reply.append(label, replyBody);
+        wrap.appendChild(reply);
+      }
+
+      return wrap;
+    }
+
+    async function ucitajKomentareZaBlog(listEl, postKey) {
+      try {
+        const res = await fetch('/.netlify/functions/comments?postKey=' + encodeURIComponent(postKey), {
+          cache: 'no-store',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (!res.ok) throw new Error('Komentari nisu dostupni.');
+        const data = await res.json();
+
+        listEl.innerHTML = '';
+        const comments = Array.isArray(data.comments) ? data.comments : [];
+
+        if (!comments.length) {
+          const empty = document.createElement('div');
+          empty.className = 'mojadoza-comment-date';
+          empty.textContent = 'Još nema komentara. Budi prvi/a. ✨';
+          listEl.appendChild(empty);
+          return;
+        }
+
+        comments.forEach(c => listEl.appendChild(napraviKomentarEl(c)));
+      } catch (e) {
+        console.warn('Komentari nisu učitani:', e);
+        listEl.innerHTML = '';
+      }
+    }
+
+    function dodajKomentareZaBlog(parent, post) {
+      const box = document.createElement('section');
+      box.className = 'mojadoza-comments';
+      box.setAttribute('aria-label', 'Komentari');
+
+      const title = document.createElement('h3');
+      title.className = 'mojadoza-comments-title';
+      title.textContent = 'Ostavi komentar';
+
+      const form = document.createElement('form');
+      form.className = 'mojadoza-comment-form';
+      form.autocomplete = 'off';
+
+      const nick = document.createElement('input');
+      nick.type = 'text';
+      nick.name = 'nickname';
+      nick.maxLength = MD_NICK_MAX;
+      nick.required = true;
+      nick.placeholder = 'Nadimak';
+      nick.setAttribute('aria-label', 'Nadimak');
+
+      const body = document.createElement('textarea');
+      body.name = 'body';
+      body.maxLength = MD_COMMENT_MAX;
+      body.required = true;
+      body.placeholder = 'Napiši komentar...';
+      body.setAttribute('aria-label', 'Komentar');
+
+      const honeypot = document.createElement('input');
+      honeypot.type = 'text';
+      honeypot.name = 'website';
+      honeypot.tabIndex = -1;
+      honeypot.autocomplete = 'off';
+      honeypot.className = 'mojadoza-honeypot';
+      honeypot.setAttribute('aria-hidden', 'true');
+
+      const row = document.createElement('div');
+      row.className = 'mojadoza-comment-form-row';
+
+      const count = document.createElement('span');
+      count.className = 'mojadoza-comment-count';
+      count.textContent = `0 / ${MD_COMMENT_MAX}`;
+
+      const submit = document.createElement('button');
+      submit.type = 'submit';
+      submit.className = 'mojadoza-comment-submit';
+      submit.textContent = 'Objavi komentar';
+
+      row.append(count, submit);
+
+      const msg = document.createElement('div');
+      msg.className = 'mojadoza-comment-msg';
+      msg.setAttribute('role', 'status');
+
+      form.append(nick, body, honeypot, row, msg);
+
+      const list = document.createElement('div');
+      list.className = 'mojadoza-comment-list';
+
+      body.addEventListener('input', () => {
+        count.textContent = `${body.value.length} / ${MD_COMMENT_MAX}`;
+      });
+
+      body.addEventListener('keydown', event => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          form.requestSubmit();
+        }
+      });
+
+      form.addEventListener('submit', async event => {
+        event.preventDefault();
+        msg.className = 'mojadoza-comment-msg';
+        msg.textContent = '';
+
+        const nickname = nick.value.trim();
+        const text = body.value.trim();
+
+        if (!nickname) {
+          msg.classList.add('error');
+          msg.textContent = 'Upiši nadimak.';
+          nick.focus();
+          return;
+        }
+        if (!text) {
+          msg.classList.add('error');
+          msg.textContent = 'Upiši komentar.';
+          body.focus();
+          return;
+        }
+        if (nickname.length > MD_NICK_MAX || text.length > MD_COMMENT_MAX) {
+          msg.classList.add('error');
+          msg.textContent = `Komentar može imati najviše ${MD_COMMENT_MAX} znakova.`;
+          return;
+        }
+
+        submit.disabled = true;
+        submit.textContent = 'Objavljujem...';
+
+        try {
+          const res = await fetch('/.netlify/functions/comments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+              postKey: post.postKey,
+              postTitle: post.postTitle,
+              nickname,
+              body: text,
+              website: honeypot.value
+            })
+          });
+
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.message || 'Komentar nije moguće objaviti.');
+
+          body.value = '';
+          count.textContent = `0 / ${MD_COMMENT_MAX}`;
+          msg.classList.add('ok');
+          msg.textContent = 'Komentar je objavljen. ❤️';
+          await ucitajKomentareZaBlog(list, post.postKey);
+        } catch (e) {
+          msg.classList.add('error');
+          msg.textContent = e.message || 'Došlo je do greške.';
+        } finally {
+          submit.disabled = false;
+          submit.textContent = 'Objavi komentar';
+        }
+      });
+
+      box.append(title, form, list);
+      parent.appendChild(box);
+      ucitajKomentareZaBlog(list, post.postKey);
+    }
+
+    async function ucitajBrojacPosjeta() {
+      try {
+        const countedKey = 'mojadoza_visit_counted_v1';
+        const shouldCount = !sessionStorage.getItem(countedKey);
+
+        const url = shouldCount
+          ? '/.netlify/functions/visits?count=1'
+          : '/.netlify/functions/visits';
+
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+
+        if (shouldCount) {
+          sessionStorage.setItem(countedKey, '1');
+        }
+
+        const el = document.createElement('div');
+        el.className = 'mojadoza-visit-counter';
+        el.textContent = `👁️ Posjete: ${Number(data.total || 0).toLocaleString('sr-Latn-RS')}`;
+        document.body.appendChild(el);
+      } catch (e) {
+        console.warn('Brojač posjeta nije dostupan:', e);
+      }
+    }
+
+    ucitajBrojacPosjeta();
+
     async function ucitajPrivatnaCitanja() {
       try {
         const dataP = await fetchJson('privatna-citanja.json');
@@ -1131,6 +1651,7 @@
       await Promise.allSettled([
         ucitajIzgled(),
         ucitajHoroskop(),
+        ucitajAnalize(),
         ucitajZanimljivosti(),
         ucitajBlog(),
         ucitajPrivatnaCitanja()
@@ -1143,6 +1664,13 @@
       const sveKartice = document.querySelectorAll('.horoskop-kartica');
       sveKartice.forEach(k => k.style.display = 'none');
       const izabrana = document.getElementById(`kartica-${znakId}`);
+      if (izabrana) izabrana.style.display = 'block';
+    }
+
+    function prikaziAnalizu(znakId) {
+      const sveKartice = document.querySelectorAll('.analiza-kartica');
+      sveKartice.forEach(k => k.style.display = 'none');
+      const izabrana = document.getElementById(`analiza-kartica-${znakId}`);
       if (izabrana) izabrana.style.display = 'block';
     }
 
