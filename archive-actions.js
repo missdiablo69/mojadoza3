@@ -2,97 +2,309 @@
 (function () {
   "use strict";
 
-  const FIELD_MAP = {
-    "Ovan":"ovan",
-    "Bik":"bik",
-    "Blizanci":"blizanci",
-    "Rak":"rak",
-    "Lav":"lav",
-    "Devica":"devica",
-    "Vaga":"vaga",
-    "Škorpija":"skorpija",
-    "Skorpija":"skorpija",
-    "Strelac":"strelac",
-    "Jarac":"jarac",
-    "Vodolija":"vodolija",
-    "Ribe":"ribe",
-    "Kratak Opis":"description",
-    "Kratak opis":"description",
-    "Sadržaj Teksta":"body",
-    "Sadržaj Bloga":"body",
-    "Naslov Teksta":"title",
-    "Naslov Bloga":"title"
-  };
+  const OWNER = "missdiablo69";
+  const REPO = "mojadoza3";
+  const BRANCH = "main";
 
-  const FOLDERS = {
-    horoskop:"content/horoskop",
-    analize:"content/analize",
-    zanimljivosti:"content/zanimljivosti",
-    blog:"content/blog"
-  };
-
-  function route() {
-    const m = (location.hash || "").match(
-      /collections\/([^/]+)\/entries\/([^/?#]+)/i
-    );
-
-    return m ? {
-      collection: decodeURIComponent(m[1]),
-      slug: decodeURIComponent(m[2])
-    } : null;
-  }
+  const FIELD_NAMES = new Set([
+    "ovan",
+    "bik",
+    "blizanci",
+    "rak",
+    "lav",
+    "devica",
+    "vaga",
+    "skorpija",
+    "strelac",
+    "jarac",
+    "vodolija",
+    "ribe",
+    "description",
+    "body",
+    "title"
+  ]);
 
   function token() {
     try {
-      return window.netlifyIdentity
-        .currentUser()
-        .token
-        .access_token;
-    } catch(e) {
+      return (
+        window.netlifyIdentity &&
+        window.netlifyIdentity.currentUser() &&
+        window.netlifyIdentity.currentUser().token &&
+        window.netlifyIdentity.currentUser().token.access_token
+      );
+    } catch (e) {
       return null;
     }
   }
 
-  async function saveArchive(path, markdown, message) {
+  function gatewayUrl(path) {
+    return (
+      "/.netlify/git/github/repos/" +
+      OWNER +
+      "/" +
+      REPO +
+      "/contents/" +
+      path.replace(/^\/+/, "")
+    );
+  }
+
+  async function gateway(method, path, body) {
     const t = token();
 
     if (!t) {
       throw new Error("Niste prijavljeni u Back Office.");
     }
 
-    const bytes = new TextEncoder().encode(markdown);
-    let binary = "";
-
-    bytes.forEach(b => {
-      binary += String.fromCharCode(b);
-    });
-
-    const response = await fetch(
-      "/.netlify/git/github/contents/" + path,
-      {
-        method: "PUT",
-        headers: {
-          "Authorization": "Bearer " + t,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          message: message,
-          content: btoa(binary),
-          branch: "main"
-        })
+    const options = {
+      method: method,
+      headers: {
+        "Authorization": "Bearer " + t,
+        "Content-Type": "application/json"
       }
-    );
+    };
 
-    const result = await response.text();
+    if (body) {
+      options.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(gatewayUrl(path), options);
+    const responseText = await response.text();
+
+    let data;
+
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      data = {
+        message: responseText
+      };
+    }
 
     if (!response.ok) {
       throw new Error(
-        result || ("Git Gateway greška " + response.status)
+        data.message || ("Git Gateway greška " + response.status)
       );
     }
+
+    return data;
   }
 
-  function getValue(root) {
+  function base64Utf8(text) {
+    const bytes = new TextEncoder().encode(text);
+    let binary = "";
+
+    bytes.forEach(function (byte) {
+      binary += String.fromCharCode(byte);
+    });
+
+    return btoa(binary);
+  }
+
+  function routeInfo() {
+    const hash = location.hash || "";
+
+    const match = hash.match(
+      /collections\/([^/]+)\/entries\/([^/?#]+)/i
+    );
+
+    if (!match) {
+      return null;
+    }
+
+    return {
+      collection: decodeURIComponent(match[1]),
+      slug: decodeURIComponent(match[2])
+    };
+  }
+
+  function sourceFolder(collection) {
+    const folders = {
+      horoskop: "content/horoskop",
+      analize: "content/analize",
+      zanimljivosti: "content/zanimljivosti",
+      blog: "content/blog"
+    };
+
+    return folders[collection] || null;
+  }
+
+  function guessFile(collection, slug) {
+    const folder = sourceFolder(collection);
+
+    if (!folder) {
+      return null;
+    }
+
+    return folder + "/" + slug + ".md";
+  }
+
+  function safeName(text) {
+    return String(text)
+      .toLowerCase()
+      .replace(/š/g, "s")
+      .replace(/č/g, "c")
+      .replace(/ć/g, "c")
+      .replace(/ž/g, "z")
+      .replace(/đ/g, "d")
+      .replace(/[^a-z0-9_-]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  function makeArchivePath(collection, slug, field) {
+    const stamp = new Date()
+      .toISOString()
+      .replace(/[-:.TZ]/g, "")
+      .slice(0, 14);
+
+    return (
+      "content/arhiva/" +
+      safeName(collection) +
+      "--" +
+      safeName(slug) +
+      "--" +
+      safeName(field) +
+      "--" +
+      stamp +
+      ".md"
+    );
+  }
+
+  function frontmatter(
+    title,
+    collection,
+    field,
+    originalFile
+  ) {
+    function escapeYaml(value) {
+      return String(value || "")
+        .replace(/\\/g, "\\\\")
+        .replace(/"/g, '\\"')
+        .replace(/\n/g, " ");
+    }
+
+    return [
+      "---",
+      'title: "' + escapeYaml(title) + '"',
+      'source: "' + escapeYaml(collection) + '"',
+      'field: "' + escapeYaml(field) + '"',
+      'original_file: "' + escapeYaml(originalFile) + '"',
+      'archived_at: "' + new Date().toISOString() + '"',
+      "---",
+      ""
+    ].join("\n");
+  }
+
+  function normalize(text) {
+    return String(text || "")
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function fieldNameFromElement(element) {
+    const name = normalize(
+      element.getAttribute("name") ||
+      element.getAttribute("data-field") ||
+      ""
+    );
+
+    const id = normalize(element.id || "");
+
+    const direct = {
+      ovan: "ovan",
+      bik: "bik",
+      blizanci: "blizanci",
+      rak: "rak",
+      lav: "lav",
+      devica: "devica",
+      vaga: "vaga",
+      skorpija: "skorpija",
+      škorpija: "skorpija",
+      strelac: "strelac",
+      jarac: "jarac",
+      vodolija: "vodolija",
+      ribe: "ribe",
+      description: "description",
+      body: "body",
+      title: "title"
+    };
+
+    if (direct[name]) {
+      return direct[name];
+    }
+
+    for (const key of Object.keys(direct)) {
+      if (
+        name.includes(key) ||
+        id.includes(key)
+      ) {
+        return direct[key];
+      }
+    }
+
+    return null;
+  }
+
+  function fieldNameFromText(text) {
+    const value = normalize(text);
+
+    const map = {
+      ovan: "ovan",
+      bik: "bik",
+      blizanci: "blizanci",
+      rak: "rak",
+      lav: "lav",
+      devica: "devica",
+      vaga: "vaga",
+      škorpija: "skorpija",
+      skorpija: "skorpija",
+      strelac: "strelac",
+      jarac: "jarac",
+      vodolija: "vodolija",
+      ribe: "ribe",
+
+      "kratak opis": "description",
+      "sadržaj teksta": "body",
+      "sadržaj bloga": "body",
+      "naslov teksta": "title",
+      "naslov bloga": "title",
+      naslov: "title"
+    };
+
+    for (const key of Object.keys(map)) {
+      if (
+        value === key ||
+        value.includes(key)
+      ) {
+        return map[key];
+      }
+    }
+
+    return null;
+  }
+
+  function findFieldRoot(control) {
+    let node = control;
+
+    for (
+      let i = 0;
+      i < 10 && node;
+      i++,
+      node = node.parentElement
+    ) {
+      if (
+        node.querySelector(
+          "textarea, input[type='text'], input:not([type]), [contenteditable='true']"
+        )
+      ) {
+        return node;
+      }
+    }
+
+    return control.parentElement || control;
+  }
+
+  function fieldValue(root) {
     const textarea = root.querySelector("textarea");
 
     if (textarea) {
@@ -104,12 +316,16 @@
     );
 
     if (editable) {
-      return editable.innerText ||
-             editable.textContent ||
-             "";
+      return (
+        editable.innerText ||
+        editable.textContent ||
+        ""
+      );
     }
 
-    const input = root.querySelector("input");
+    const input = root.querySelector(
+      "input[type='text'], input:not([type])"
+    );
 
     if (input) {
       return input.value;
@@ -118,247 +334,330 @@
     return "";
   }
 
-  function safeName(text) {
-    return String(text)
-      .toLowerCase()
-      .replace(/š/g,"s")
-      .replace(/č/g,"c")
-      .replace(/ć/g,"c")
-      .replace(/ž/g,"z")
-      .replace(/đ/g,"d")
-      .replace(/[^a-z0-9_-]+/g,"-")
-      .replace(/^-+|-+$/g,"");
-  }
+  async function archiveField(
+    fieldName,
+    currentValue,
+    button
+  ) {
+    const info = routeInfo();
 
-  function findFieldRoot(label) {
-    let node = label;
-
-    for (
-      let i = 0;
-      i < 12 && node;
-      i++,
-      node = node.parentElement
-    ) {
-      if (
-        node.querySelector(
-          "textarea,[contenteditable='true'],input"
-        )
-      ) {
-        return node;
-      }
+    if (!info) {
+      alert(
+        "Otvori konkretan tekst u Back Office-u pa klikni ARHIVIRAJ."
+      );
+      return;
     }
 
-    return null;
-  }
+    const folder = sourceFolder(info.collection);
 
-  function addArchiveButton(label, fieldName) {
-    const root = findFieldRoot(label);
+    if (!folder) {
+      alert(
+        "Ova sekcija još nije povezana sa Arhivom."
+      );
+      return;
+    }
 
-    if (!root) return;
+    const value = String(currentValue || "").trim();
 
-    if (root.dataset.moArhivaButton) return;
+    if (!value) {
+      alert("Ovo polje je prazno.");
+      return;
+    }
 
-    root.dataset.moArhivaButton = "1";
+    const confirmed = confirm(
+      "Arhivirati ovaj tekst?\n\n" +
+      "Sekcija: " +
+      info.collection +
+      "\n" +
+      "Polje: " +
+      fieldName +
+      "\n\n" +
+      "Tekst će biti sačuvan u ARHIVU."
+    );
 
-    const button = document.createElement("button");
+    if (!confirmed) {
+      return;
+    }
 
-    button.type = "button";
-    button.textContent = "ARHIVIRAJ";
+    button.disabled = true;
+    button.textContent = "ARHIVIRAM...";
 
-    button.style.cssText =
-      "display:block;" +
-      "margin:8px 0;" +
-      "padding:7px 14px;" +
-      "border:1px solid #c9a227;" +
-      "border-radius:6px;" +
-      "background:#21183b;" +
-      "color:#c9a227;" +
-      "font-weight:700;" +
-      "cursor:pointer;" +
-      "font-size:12px;" +
-      "z-index:9999;" +
-      "position:relative;";
-
-    button.addEventListener("click", async function(event) {
-
-      event.preventDefault();
-      event.stopPropagation();
-
-      const currentRoute = route();
-
-      if (
-        !currentRoute ||
-        !FOLDERS[currentRoute.collection]
-      ) {
-        alert(
-          "Otvori konkretan tekst iz Horoskopa, Analiza, Zanimljivosti ili Bloga."
-        );
-        return;
-      }
-
-      const text = getValue(root).trim();
-
-      if (!text) {
-        alert("Ovo polje je prazno.");
-        return;
-      }
-
-      const confirmed = confirm(
-        "Arhivirati ovaj tekst?\n\n" +
-        label.textContent.trim()
+    try {
+      const originalFile = guessFile(
+        info.collection,
+        info.slug
       );
 
-      if (!confirmed) return;
-
-      button.disabled = true;
-      button.textContent = "ARHIVIRAM...";
-
-      try {
-
-        const originalFile =
-          FOLDERS[currentRoute.collection] +
-          "/" +
-          currentRoute.slug +
-          ".md";
-
-        const stamp =
-          new Date()
-            .toISOString()
-            .replace(/[-:.TZ]/g,"")
-            .slice(0,14);
-
-        const archiveFile =
-          "content/arhiva/" +
-          safeName(currentRoute.collection) +
-          "--" +
-          safeName(currentRoute.slug) +
-          "--" +
-          safeName(fieldName) +
-          "--" +
-          stamp +
-          ".md";
-
-        const title =
-          currentRoute.slug.replace(/-/g," ") +
-          " — " +
-          fieldName;
-
-        const yaml = [
-          "---",
-          'title: "' +
-            title.replace(/"/g,'\\"') +
-            '"',
-          'source: "' +
-            currentRoute.collection +
-            '"',
-          'field: "' +
-            fieldName +
-            '"',
-          'original_file: "' +
-            originalFile +
-            '"',
-          'archived_at: "' +
-            new Date().toISOString() +
-            '"',
-          "---",
-          ""
-        ].join("\n");
-
-        await saveArchive(
-          archiveFile,
-          yaml + text + "\n",
-          "Arhiviraj: " +
-          currentRoute.collection +
-          "/" +
-          currentRoute.slug +
-          " [" +
-          fieldName +
-          "]"
+      if (!originalFile) {
+        throw new Error(
+          "Ne mogu odrediti originalni fajl."
         );
-
-        button.textContent = "✓ ARHIVIRANO";
-        button.style.background = "#2e7d32";
-
-        alert(
-          "Tekst je sačuvan u Arhivi.\n\n" +
-          "Sada klikni SAVE u Back Office-u da se ukloni iz aktivnog teksta."
-        );
-
-      } catch(error) {
-
-        console.error(error);
-
-        alert(
-          "Arhiviranje nije uspjelo:\n\n" +
-          error.message
-        );
-
-        button.textContent = "ARHIVIRAJ";
-
-      } finally {
-
-        button.disabled = false;
-
       }
-    });
 
-    label.parentElement.appendChild(button);
+      const archivePath = makeArchivePath(
+        info.collection,
+        info.slug,
+        fieldName
+      );
+
+      const title =
+        info.slug.replace(/-/g, " ") +
+        " — " +
+        fieldName;
+
+      const content =
+        frontmatter(
+          title,
+          info.collection,
+          fieldName,
+          originalFile
+        ) +
+        value +
+        "\n";
+
+      await gateway(
+        "PUT",
+        archivePath,
+        {
+          message:
+            "Arhiviraj: " +
+            info.collection +
+            "/" +
+            info.slug +
+            " [" +
+            fieldName +
+            "]",
+
+          content: base64Utf8(content),
+
+          branch: BRANCH
+        }
+      );
+
+      button.textContent = "✓ ARHIVIRANO";
+      button.style.background = "#2e7d32";
+
+      alert(
+        "Tekst je uspješno sačuvan u ARHIVU.\n\n" +
+        "Arhivirana kopija je sada spremljena u content/arhiva."
+      );
+
+    } catch (error) {
+      console.error(error);
+
+      alert(
+        "Arhiviranje nije uspjelo:\n\n" +
+        error.message
+      );
+
+      button.textContent = "ARHIVIRAJ";
+
+    } finally {
+      button.disabled = false;
+    }
   }
 
-  function scanFields() {
+  function addButtonForControl(
+    control,
+    fieldName
+  ) {
+    const root = findFieldRoot(control);
 
-    const currentRoute = route();
+    if (!root) {
+      return;
+    }
 
     if (
-      !currentRoute ||
-      !FOLDERS[currentRoute.collection]
+      root.dataset.moArhiva === "1"
     ) {
       return;
     }
 
-    document.querySelectorAll("label").forEach(label => {
+    root.dataset.moArhiva = "1";
 
-      const text =
-        (label.textContent || "").trim();
+    const button =
+      document.createElement("button");
 
-      const field =
-        FIELD_MAP[text] ||
-        Object.keys(FIELD_MAP).find(
-          key =>
-            text.toLowerCase() ===
-            key.toLowerCase()
-        );
+    button.type = "button";
 
-      if (field) {
-        addArchiveButton(
-          label,
-          field
+    button.textContent =
+      "ARHIVIRAJ";
+
+    button.style.cssText =
+      "display:inline-block;" +
+      "margin:8px 0 10px;" +
+      "padding:8px 15px;" +
+      "border:1px solid #d4af37;" +
+      "border-radius:6px;" +
+      "background:#1a1530;" +
+      "color:#d4af37;" +
+      "font-weight:700;" +
+      "cursor:pointer;" +
+      "font-size:12px;" +
+      "letter-spacing:.5px;" +
+      "position:relative;" +
+      "z-index:9999;";
+
+    button.title =
+      "Sačuvaj ovaj tekst u Arhivu";
+
+    button.addEventListener(
+      "click",
+      function (event) {
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        archiveField(
+          fieldName,
+          fieldValue(root),
+          button
         );
       }
+    );
 
-    });
+    const label =
+      root.querySelector("label") ||
+      Array.from(
+        root.querySelectorAll("*")
+      ).find(function (element) {
+
+        const text =
+          normalize(
+            element.textContent
+          );
+
+        return (
+          text &&
+          fieldNameFromText(text) ===
+            fieldName &&
+          element.children.length === 0
+        );
+      });
+
+    if (
+      label &&
+      label.parentElement
+    ) {
+      label.parentElement.appendChild(
+        button
+      );
+
+    } else if (
+      control.parentElement
+    ) {
+      control.parentElement.insertBefore(
+        button,
+        control
+      );
+
+    } else {
+      root.insertBefore(
+        button,
+        root.firstChild
+      );
+    }
+  }
+
+  function addButtons() {
+    const info = routeInfo();
+
+    if (
+      !info ||
+      !sourceFolder(info.collection)
+    ) {
+      return;
+    }
+
+    const controls =
+      document.querySelectorAll(
+        "textarea, " +
+        "input[type='text'], " +
+        "input:not([type]), " +
+        "[contenteditable='true']"
+      );
+
+    controls.forEach(
+      function (control) {
+
+        const fieldName =
+          fieldNameFromElement(
+            control
+          );
+
+        if (
+          fieldName &&
+          FIELD_NAMES.has(fieldName)
+        ) {
+          addButtonForControl(
+            control,
+            fieldName
+          );
+        }
+      }
+    );
+
+    document
+      .querySelectorAll("label")
+      .forEach(
+        function (label) {
+
+          const fieldName =
+            fieldNameFromText(
+              label.textContent
+            );
+
+          if (
+            !fieldName ||
+            !FIELD_NAMES.has(
+              fieldName
+            )
+          ) {
+            return;
+          }
+
+          const root =
+            findFieldRoot(label);
+
+          const control =
+            root.querySelector(
+              "textarea, " +
+              "input[type='text'], " +
+              "input:not([type]), " +
+              "[contenteditable='true']"
+            );
+
+          if (control) {
+            addButtonForControl(
+              control,
+              fieldName
+            );
+          }
+        }
+      );
   }
 
   function start() {
-
-    scanFields();
+    addButtons();
 
     const observer =
       new MutationObserver(
-        scanFields
+        function () {
+          addButtons();
+        }
       );
 
     observer.observe(
       document.body,
       {
-        childList:true,
-        subtree:true
+        childList: true,
+        subtree: true
       }
     );
 
     setInterval(
-      scanFields,
-      2000
+      addButtons,
+      1500
     );
   }
 
@@ -375,7 +674,6 @@
   } else {
 
     start();
-
   }
 
 })();
