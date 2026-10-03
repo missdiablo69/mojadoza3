@@ -37,16 +37,12 @@
     }
   }
 
-  function gatewayUrl(path) {
+ function gatewayUrl(path) {
     return (
-      "/.netlify/git/github/repos/" +
-      OWNER +
-      "/" +
-      REPO +
-      "/contents/" +
+      "/.netlify/git/github/contents/" +
       path.replace(/^\/+/, "")
     );
-  }
+}
 
   async function gateway(method, path, body) {
     const t = token();
