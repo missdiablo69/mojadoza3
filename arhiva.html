@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://*.githubusercontent.com; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests; block-all-mixed-content">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<title>Moja Doza — Arhiva</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.3.0/dist/purify.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Poppins:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d0a1a;--card:#1a1530;--gold:#d4af37;--text:#f0e6ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Poppins,sans-serif;line-height:1.6}
+header{background:rgba(26,21,48,.95);padding:20px;text-align:center;border-bottom:2px solid var(--gold);position:sticky;top:0;z-index:10}
+h1,h2{font-family:Cinzel,serif;color:var(--gold)}
+h1{margin:0 0 10px}
+nav a{color:var(--text);text-decoration:none;font-weight:700;margin:0 12px}
+nav a:hover{color:var(--gold)}
+.container{max-width:900px;margin:0 auto;padding:30px 20px 70px}
+.back{display:inline-block;margin-bottom:25px;color:var(--gold);text-decoration:none;font-weight:700}
+h2{text-align:center;border-bottom:1px solid var(--gold);padding-bottom:12px}
+.list{display:flex;flex-direction:column;gap:12px}
+.item{background:var(--card);border:1px solid var(--gold);border-radius:9px;overflow:hidden}
+.title{width:100%;padding:16px 20px;background:none;border:0;color:var(--gold);font:700 1.08rem Cinzel,serif;text-align:left;cursor:pointer;display:flex;justify-content:space-between;gap:15px}
+.title:hover{background:rgba(212,175,55,.12)}
+.body{display:none;padding:20px;border-top:1px solid #332a52}
+.item.open .body{display:block}
+.meta{font-size:.82rem;opacity:.7;margin-bottom:12px}
+.empty{text-align:center;opacity:.8;padding:30px}
+.loading{text-align:center;padding:30px}
+</style>
+</head>
+<body>
+<header>
+<h1>Moja Doza</h1>
+<nav>
+<a href="index.html">Početna</a>
+<a href="zanimljivosti.html">Zanimljivosti</a>
+<a href="arhiva.html">Arhiva</a>
+</nav>
+</header>
+<div class="container">
+<a class="back" href="index.html">← Nazad na početnu</a>
+<h2>ARHIVA</h2>
+<div id="lista" class="list"><div class="loading">Učitavanje arhive…</div></div>
+</div>
+<script>
+const OWNER="missdiablo69", REPO="mojadoza3", BRANCH="main";
+const API=`https://api.github.com/repos/${OWNER}/${REPO}/contents/content/arhiva?ref=${BRANCH}`;
+
+function decode(b64){
+  const bin=atob(b64.replace(/\n/g,""));
+  const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+function parseMd(s){
+  const m=s.match(/^---\s*([\s\S]*?)\s*---\s*([\s\S]*)$/);
+  if(!m)return {meta:{},body:s};
+  const meta={};
+  m[1].split(/\r?\n/).forEach(line=>{
+    const x=line.match(/^([^:]+):\s*(.*)$/);
+    if(x) meta[x[1].trim()]=x[2].trim().replace(/^"(.*)"$/,"$1");
+  });
+  return {meta,body:m[2]};
+}
+async function load(){
+  const box=document.getElementById("lista");
+  try{
+    const r=await fetch(API,{headers:{Accept:"application/vnd.github+json"}});
+    if(r.status===404){box.innerHTML='<div class="empty">Arhiva je trenutno prazna.</div>';return;}
+    if(!r.ok)throw new Error("GitHub odgovor "+r.status);
+    const files=await r.json();
+    const md=files.filter(x=>/\.md$/i.test(x.name)).sort((a,b)=>b.name.localeCompare(a.name));
+    if(!md.length){box.innerHTML='<div class="empty">Arhiva je trenutno prazna.</div>';return;}
+    const entries=await Promise.all(md.map(async f=>{
+      const r=await fetch(f.download_url);
+      return {name:f.name, text:await r.text()};
+    }));
+    box.innerHTML="";
+    entries.forEach(({name,text})=>{
+      const p=parseMd(text), item=document.createElement("article");
+      item.className="item";
+      const title=document.createElement("button");
+      title.className="title";
+      title.innerHTML=`<span>${esc(p.meta.title||name.replace(/\.md$/,""))}</span><span>＋</span>`;
+      title.onclick=()=>{item.classList.toggle("open");title.lastElementChild.textContent=item.classList.contains("open")?"−":"＋";};
+      const body=document.createElement("div");body.className="body";
+      const meta=[];
+      if(p.meta.source)meta.push("Izvor: "+p.meta.source);
+      if(p.meta.archived_at)meta.push("Arhivirano: "+new Date(p.meta.archived_at).toLocaleString("sr-Latn-RS"));
+      body.innerHTML=`<div class="meta">${esc(meta.join(" · "))}</div>`+
+        DOMPurify.sanitize(marked.parse(p.body||""));
+      item.append(title,body);box.appendChild(item);
+    });
+  }catch(e){
+    console.error(e);
+    box.innerHTML='<div class="empty">Arhiva trenutno nije dostupna.</div>';
+  }
+}
+function esc(s){return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+load();
+</script>
+</body>
+</html>
