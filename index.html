@@ -4,11 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://astro-charts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' https: data: blob:; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://*.githubusercontent.com https://astro-charts.com; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests; block-all-mixed-content">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-src https://timezone.day; form-action 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://timezone.day; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' https: data: blob:; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://*.githubusercontent.com https://timezone.day; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests; block-all-mixed-content">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="X-Frame-Options" content="DENY">
-  <script src="https://astro-charts.com/static/widget-coa.js"></script>
-  <script src="https://astro-charts.com/static/widget-moon.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.3.0/dist/purify.min.js"></script>
@@ -135,16 +133,6 @@
     .moon-sidebar .moon-widget-wrap {
       width: 100%;
       overflow: hidden;
-    }
-
-    .moon-sidebar .ac-widget-coa,
-    .moon-sidebar .ac-widget-moon {
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    .moon-sidebar .ac-w-mark {
-      font-size: 11px;
     }
 
     @media (max-width: 760px) {
@@ -574,29 +562,13 @@
 
         <aside class="moon-sidebar" aria-label="Current Moon">
           <h3>🌙 CURRENT MOON</h3>
-        <div class="moon-timezone-label">Belgrade time · Europe/Belgrade</div>
-
-          <!-- Live planetary positions: Moon sign + exact degree -->
+          <div class="moon-timezone-label">London time · Europe/London</div>
           <div class="moon-widget-wrap">
-            <div class="ac-widget-coa"
-              geo_pk="17"
-              place="Belgrade, Serbia">
-              <a class="ac-w-mark" href="https://astro-charts.com/" target="_blank" rel="noopener">
-                <span class="ac-w-circle-a">A</span>Astro·Charts
-              </a>
-            </div>
-          </div>
-
-          <!-- Live lunar phase + illumination -->
-          <div class="moon-widget-wrap" style="margin-top:10px;">
-            <div class="ac-widget-moon"
-              geo_pk="17"
-              place="Belgrade, Serbia"
-              data-size="compact">
-              <a class="ac-w-mark" href="https://astro-charts.com/" target="_blank" rel="noopener">
-                <span class="ac-w-circle-a">A</span>Astro·Charts
-              </a>
-            </div>
+            <script src="https://timezone.day/js/embed.js"
+                    data-tool="moon_phase"
+                    data-place="London"
+                    data-size="compact"
+                    async></script>
           </div>
         </aside>
       </div>
