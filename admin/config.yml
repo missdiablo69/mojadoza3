@@ -79,6 +79,20 @@ collections:
       - { label: "Naslovna Slika", name: "image", widget: "image", required: false }
       - { label: "Sadržaj Bloga", name: "body", widget: "markdown" }
 
+
+  - name: "arhiva"
+    label: "ARHIVA"
+    folder: "content/arhiva"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Naslov", name: "title", widget: "string" }
+      - { label: "Izvor", name: "source", widget: "string", required: false }
+      - { label: "Polje", name: "field", widget: "string", required: false }
+      - { label: "Originalni Fajl", name: "original_file", widget: "string", required: false }
+      - { label: "Datum Arhiviranja", name: "archived_at", widget: "datetime", required: false }
+      - { label: "Sadržaj", name: "body", widget: "markdown" }
+
   - name: "privatna_citanja"
     label: "Privatna Čitanja"
     files:
