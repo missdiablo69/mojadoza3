@@ -706,6 +706,7 @@
 
     }
 
+
     return (
       control.parentElement ||
       control
@@ -1448,6 +1449,17 @@
 
   /* =======================================================
      UBACI POLJE NAZAD U ORIGINAL
+
+     VAŽNO:
+     Ako polje već postoji, sada se PREPISUJE arhiviranom
+     vrijednošću.
+
+     Ovo rješava problem sa title poljem:
+     "Polje title već postoji u originalnom fajlu.
+      Tekst nije prepisan."
+
+     Decap često već ima title u originalnom fajlu,
+     pa staro ponašanje nije moglo vratiti title.
   ======================================================= */
 
   function insertRestoredField(
@@ -1515,7 +1527,15 @@
 
 
     /* ---------------------------------------------
-       PROVJERI DA POLJE VEĆ NE POSTOJI
+       PROVJERI DA LI POLJE VEĆ POSTOJI
+
+       Ako postoji:
+       - pronađi cijeli YAML blok tog polja
+       - ukloni ga
+       - ubaci arhiviranu vrijednost na isto mjesto
+
+       Ako ne postoji:
+       - ubaci novo polje prije završnog ---
     --------------------------------------------- */
 
     for (
@@ -1536,14 +1556,66 @@
           wanted
       ) {
 
-        throw new Error(
+        /*
+         * POLJE VEĆ POSTOJI.
+         *
+         * Umjesto greške, zamjenjujemo
+         * postojeće polje arhiviranom
+         * vrijednošću.
+         */
 
-          'Polje "' +
-          field +
-          '" već postoji u originalnom fajlu. ' +
+        const fieldStart =
+          i;
 
-          "Tekst nije prepisan."
+        let fieldEnd =
+          i + 1;
 
+
+        /*
+         * Pronađi početak sljedećeg
+         * YAML polja.
+         *
+         * Ovo omogućava zamjenu i kod
+         * višerednih YAML vrijednosti.
+         */
+
+        while (
+          fieldEnd < end
+        ) {
+
+          const nextField =
+            lines[fieldEnd].match(
+              /^([A-Za-z0-9_-]+)\s*:/
+            );
+
+
+          if (nextField) {
+            break;
+          }
+
+
+          fieldEnd++;
+        }
+
+
+        /*
+         * Zamijeni cijeli postojeći
+         * YAML blok arhiviranom
+         * vrijednošću.
+         */
+
+        lines.splice(
+          fieldStart,
+          fieldEnd - fieldStart,
+          yamlBlockField(
+            field,
+            value
+          )
+        );
+
+
+        return lines.join(
+          "\n"
         );
 
       }
@@ -1551,7 +1623,8 @@
 
 
     /* ---------------------------------------------
-       UBACI POLJE PRIJE ZAVRŠNOG ---
+       POLJE NE POSTOJI
+       UBACI GA PRIJE ZAVRŠNOG ---
     --------------------------------------------- */
 
     lines.splice(
