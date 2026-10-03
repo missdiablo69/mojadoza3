@@ -124,7 +124,7 @@
       overflow: hidden;
     }
 
-    .moon-sidebar h3 {
+    .moon-timezone-label { font-size: 0.78rem; opacity: 0.8; margin: -8px 0 10px; letter-spacing: .03em; }\n\n.moon-sidebar h3 {
       margin: 0 0 10px;
       text-align: center;
       color: var(--accent-color);
@@ -574,12 +574,13 @@
 
         <aside class="moon-sidebar" aria-label="Current Moon">
           <h3>🌙 CURRENT MOON</h3>
+        <div class="moon-timezone-label">Belgrade time · Europe/Belgrade</div>
 
           <!-- Live planetary positions: Moon sign + exact degree -->
           <div class="moon-widget-wrap">
             <div class="ac-widget-coa"
               geo_pk="17"
-              place="London, United Kingdom">
+              place="Belgrade, Serbia">
               <a class="ac-w-mark" href="https://astro-charts.com/" target="_blank" rel="noopener">
                 <span class="ac-w-circle-a">A</span>Astro·Charts
               </a>
@@ -590,7 +591,7 @@
           <div class="moon-widget-wrap" style="margin-top:10px;">
             <div class="ac-widget-moon"
               geo_pk="17"
-              place="London, United Kingdom"
+              place="Belgrade, Serbia"
               data-size="compact">
               <a class="ac-w-mark" href="https://astro-charts.com/" target="_blank" rel="noopener">
                 <span class="ac-w-circle-a">A</span>Astro·Charts
