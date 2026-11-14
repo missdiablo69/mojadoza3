@@ -387,6 +387,39 @@
       pointer-events: none !important;
     }
 
+    /* NOVOGODIŠNJE PAHULJICE */
+    #snow-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none; /* Da pahuljice ne blokiraju klikove na dugmad i linkove */
+      z-index: 9999;
+      overflow: hidden;
+    }
+
+    .snowflake {
+      position: absolute;
+      top: -20px;
+      color: #ffffff;
+      text-shadow: 0 0 6px rgba(212, 175, 55, 0.7); /* Blagi zlatni sjaj u stilu sajta */
+      user-select: none;
+      animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(-20px) translateX(0px) rotate(0deg);
+      }
+      50% {
+        transform: translateY(50vh) translateX(15px) rotate(180deg);
+      }
+      100% {
+        transform: translateY(105vh) translateX(-10px) rotate(360deg);
+      }
+    }
+
   </style>
 
   <script>
@@ -1748,4 +1781,37 @@ function prikaziZanimljivosti(tekstovi) {
 }
 
 ucitajSveSekcije();
-  </script>  
+  </script>
+
+  <div id="snow-container" aria-hidden="true"></div>
+  <script>
+    (function createSnowfall() {
+      const container = document.getElementById('snow-container');
+      if (!container) return;
+
+      const snowflakeSymbols = ['❄', '❅', '❆', '•'];
+      const flakeCount = 45; // Broj pahuljica na ekranu
+
+      for (let i = 0; i < flakeCount; i++) {
+        const flake = document.createElement('span');
+        flake.className = 'snowflake';
+        flake.textContent = snowflakeSymbols[Math.floor(Math.random() * snowflakeSymbols.length)];
+
+        const size = Math.random() * 12 + 8; // Veličina između 8px i 20px
+        const left = Math.random() * 100; // Pozicija po širini (0% - 100%)
+        const duration = Math.random() * 8 + 7; // Brzina pada (7s - 15s)
+        const delay = Math.random() * 10; // Nasumično kašnjenje početka
+        const opacity = Math.random() * 0.5 + 0.3; // Providnost (0.3 - 0.8)
+
+        flake.style.left = `${left}vw`;
+        flake.style.fontSize = `${size}px`;
+        flake.style.animationDuration = `${duration}s`;
+        flake.style.animationDelay = `-${delay}s`;
+        flake.style.opacity = opacity;
+
+        container.appendChild(flake);
+      }
+    })();
+  </script>
+</body>
+</html>
