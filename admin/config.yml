@@ -57,6 +57,27 @@ collections:
       - { label: "Vodolija", name: "vodolija", widget: "markdown", required: false }
       - { label: "Ribe", name: "ribe", widget: "markdown", required: false }
 
+  # NOVOGODIŠNJI SPECIJAL
+  - name: "novogodisnji_specijal"
+    label: "❄️ Novogodišnji Specijal"
+    folder: "content/novogodisnji-specijal"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-novogodisnji-specijal"
+    fields:
+      - { label: "Naslov Specijala", name: "title", widget: "string", default: "Novogodišnji Specijal" }
+      - { label: "♈ Ovan", name: "ovan", widget: "markdown", required: false }
+      - { label: "♉ Bik", name: "bik", widget: "markdown", required: false }
+      - { label: "♊ Blizanci", name: "blizanci", widget: "markdown", required: false }
+      - { label: "♋ Rak", name: "rak", widget: "markdown", required: false }
+      - { label: "♌ Lav", name: "lav", widget: "markdown", required: false }
+      - { label: "♍ Devica", name: "devica", widget: "markdown", required: false }
+      - { label: "♎ Vaga", name: "vaga", widget: "markdown", required: false }
+      - { label: "♏ Škorpija", name: "skorpija", widget: "markdown", required: false }
+      - { label: "♐ Strelac", name: "strelac", widget: "markdown", required: false }
+      - { label: "♑ Jarac", name: "jarac", widget: "markdown", required: false }
+      - { label: "♒ Vodolija", name: "vodolija", widget: "markdown", required: false }
+      - { label: "♓ Ribe", name: "ribe", widget: "markdown", required: false }
+
   - name: "zanimljivosti"
     label: "Zanimljivosti & Tekstovi"
     folder: "content/zanimljivosti"
@@ -78,7 +99,6 @@ collections:
       - { label: "Kratak Opis", name: "description", widget: "text", required: false }
       - { label: "Naslovna Slika", name: "image", widget: "image", required: false }
       - { label: "Sadržaj Bloga", name: "body", widget: "markdown" }
-
 
   - name: "arhiva"
     label: "ARHIVA"
