@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' https: data: blob:; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://*.githubusercontent.com; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests; block-all-mixed-content">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.3.0/dist/purify.min.js"></script>
+  <title>Moja Doza - Novogodišnji Specijal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Poppins:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0d0a1a;
+      --card-bg: #1a1530;
+      --accent-color: #d4af37;
+      --text-color: #f0e6ff;
+      --font-main: 'Poppins', sans-serif;
+      --font-heading: 'Cinzel', serif;
+    }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+      font-family: var(--font-main);
+    }
+    h1, h2, h3 { font-family: var(--font-heading); color: var(--accent-color); }
+    header {
+      background: rgba(26, 21, 48, 0.9);
+      padding: 20px;
+      text-align: center;
+      border-bottom: 2px solid var(--accent-color);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    header h1 { margin: 0; letter-spacing: 2px; }
+    nav a {
+      color: var(--text-color);
+      text-decoration: none;
+      margin: 0 15px;
+      font-weight: bold;
+      transition: color 0.3s;
+    }
+    nav a:hover { color: var(--accent-color); }
+    .container { max-width: 900px; margin: 30px auto; padding: 20px; }
+    
+    /* Harmonika lista za znakove */
+    .specijal-lista {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .specijal-item {
+      background: var(--card-bg);
+      border: 1px solid var(--accent-color);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .specijal-btn {
+      width: 100%;
+      padding: 18px 20px;
+      background: transparent;
+      color: var(--accent-color);
+      border: none;
+      text-align: left;
+      font-size: 1.2rem;
+      font-family: var(--font-heading);
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.2s;
+    }
+    .specijal-btn:hover { background: rgba(212, 175, 55, 0.15); }
+    .specijal-sadrzaj {
+      display: none;
+      padding: 25px;
+      border-top: 1px solid #332a52;
+      background-color: rgba(13, 10, 26, 0.6);
+      color: var(--text-color);
+      line-height: 1.8;
+    }
+    .specijal-item.otvoren .specijal-sadrzaj { display: block; }
+
+    /* Novogodišnje pahuljice */
+    #snow-container {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 9999; overflow: hidden;
+    }
+    .snowflake {
+      position: absolute; top: -20px; color: #ffffff;
+      text-shadow: 0 0 6px rgba(212, 175, 55, 0.7);
+      user-select: none; animation: fall linear infinite;
+    }
+    @keyframes fall {
+      0% { transform: translateY(-20px) translateX(0px) rotate(0deg); }
+      50% { transform: translateY(50vh) translateX(15px) rotate(180deg); }
+      100% { transform: translateY(105vh) translateX(-10px) rotate(360deg); }
+    }
+    footer { text-align: center; padding: 30px; font-size: 0.9rem; border-top: 1px solid #251d42; margin-top: 50px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>MOJA DOZA</h1>
+    <nav>
+      <a href="index.html">Početna</a>
+      <a href="index.html#karta-dana">Karta Dana</a>
+      <a href="index.html#horoskop">Horoskop</a>
+      <a href="index.html#blog">Blog</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h2>❄️ Novogodišnji Specijal 🎄</h2>
+    <p style="text-align: center; margin-bottom: 30px;" id="specijal-naslov-opis">Učitavanje novogodišnjih prognoza...</p>
+    
+    <div id="specijal-kontejner" class="specijal-lista">
+      <p style="text-align: center;">Učitavanje sadržaja...</p>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 Mojadoza.com - Sva prava zadržana.</p>
+  </footer>
+
+  <div id="snow-container" aria-hidden="true"></div>
+
+  <script>
+    // Pahuljice efekat
+    (function createSnowfall() {
+      const container = document.getElementById('snow-container');
+      if (!container) return;
+      const symbols = ['❄', '❅', '❆', '✨'];
+      for (let i = 0; i < 40; i++) {
+        const flake = document.createElement('span');
+        flake.className = 'snowflake';
+        flake.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+        flake.style.left = `${Math.random() * 100}vw`;
+        flake.style.fontSize = `${Math.random() * 10 + 10}px`;
+        flake.style.animationDuration = `${Math.random() * 8 + 6}s`;
+        flake.style.animationDelay = `-${Math.random() * 10}s`;
+        flake.style.opacity = Math.random() * 0.6 + 0.3;
+        container.appendChild(flake);
+      }
+    })();
+
+    function sanitizujHtml(html) {
+      if (typeof DOMPurify === 'undefined') return String(html || '');
+      return DOMPurify.sanitize(String(html || ''), {
+        FORBID_TAGS: ['script','iframe','object','embed','form','base','meta','link'],
+        FORBID_ATTR: ['srcdoc']
+      });
+    }
+
+    function parseCmsMarkdown(raw) {
+      const text = String(raw || '');
+      const match = text.match(/^---\s*\n([\s\S]*?)\n---\s*\n?([\s\S]*)$/);
+      if (!match) return { data: {}, content: text };
+      let data = {};
+      try {
+        if (typeof jsyaml !== 'undefined') data = jsyaml.load(match[1]) || {};
+      } catch (_) {
+        data = {};
+      }
+      return { data: data || {}, content: match[2] || '' };
+    }
+
+    async function ucitajNovogodisnjiSpecijalStranicu() {
+      const kontejner = document.getElementById('specijal-kontejner');
+      const opisEl = document.getElementById('specijal-naslov-opis');
+      if (!kontejner) return;
+
+      try {
+        const res = await fetch('https://api.github.com/repos/missdiablo69/mojadoza3/contents/content/novogodisnji-specijal?_=' + Date.now(), {
+          headers: { 'Accept': 'application/vnd.github+json' }
+        });
+        if (!res.ok) throw new Error('Nije moguće učitati folder.');
+        const files = await res.json();
+        
+        const cmsFiles = files.filter(f => f.type === 'file' && /\.(md|markdown|json)$/i.test(f.name));
+        if (!cmsFiles.length) {
+          kontejner.innerHTML = '<p style="text-align: center;">Trenutno nema unesenih novogodišnjih specijalnih objava.</p>';
+          opisEl.textContent = 'Trenutno nema aktivnih prognoza.';
+          return;
+        }
+
+        // Uzimamo najnoviji fajl
+        const latest = cmsFiles.sort().pop();
+        const fileRes = await fetch(latest.download_url);
+        const raw = await fileRes.text();
+        
+        const parsed = parseCmsMarkdown(raw);
+        const data = parsed.data || {};
+
+        if (data.title) {
+          opisEl.textContent = data.title;
+        } else {
+          opisEl.textContent = 'Izaberite svoj horoskopski znak i otkrijte šta vam zvezde donose u novoj godini!';
+        }
+
+        const znaciListu = [
+          { kljuc: 'ovan', naziv: '♈ Ovan' },
+          { kljuc: 'bik', naziv: '♉ Bik' },
+          { kljuc: 'blizanci', naziv: '♊ Blizanci' },
+          { kljuc: 'rak', naziv: '♋ Rak' },
+          { kljuc: 'lav', naziv: '♌ Lav' },
+          { kljuc: 'devica', naziv: '♍ Devica' },
+          { kljuc: 'vaga', naziv: '♎ Vaga' },
+          { kljuc: 'skorpija', naziv: '♏ Škorpija' },
+          { kljuc: 'strelac', naziv: '♐ Strelac' },
+          { kljuc: 'jarac', naziv: '♑ Jarac' },
+          { kljuc: 'vodolija', naziv: '♒ Vodolija' },
+          { kljuc: 'ribe', naziv: '♓ Ribe' }
+        ];
+
+        kontejner.innerHTML = '';
+
+        znaciListu.forEach((z, index) => {
+          const tekstZnak = data[z.kljuc] || 'Sadržaj za ovaj znak uskoro stiže... 🌟';
+          
+          const item = document.createElement('div');
+          item.className = 'specijal-item';
+          item.id = `specijal-znak-${index}`;
+
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'specijal-btn';
+          btn.innerHTML = `<span>${z.naziv}</span> <span class="strelica">▼</span>`;
+
+          const sadrzaj = document.createElement('div');
+          sadrzaj.className = 'specijal-sadrzaj';
+          
+          if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+            sadrzaj.innerHTML = sanitizujHtml(marked.parse(String(tekstZnak)));
+          } else {
+            sadrzaj.textContent = tekstZnak;
+          }
+
+          btn.addEventListener('click', () => {
+            const otvoren = item.classList.contains('otvoren');
+            document.querySelectorAll('.specijal-item').forEach(el => {
+              el.classList.remove('otvoren');
+              const str = el.querySelector('.strelica');
+              if (str) str.textContent = '▼';
+            });
+            if (!otvoren) {
+              item.classList.add('otvoren');
+              btn.querySelector('.strelica').textContent = '▲';
+            }
+          });
+
+          item.appendChild(btn);
+          item.appendChild(sadrzaj);
+          kontejner.appendChild(item);
+        });
+
+      } catch (e) {
+        console.error(e);
+        kontejner.innerHTML = '<p style="text-align: center;">Došlo je do greške prilikom učitavanja sadržaja.</p>';
+      }
+    }
+
+    ucitajNovogodisnjiSpecijalStranicu();
+  </script>
+</body>
+</html>
